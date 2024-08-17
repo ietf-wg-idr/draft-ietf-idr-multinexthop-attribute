@@ -1,0 +1,2517 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+<?rfc toc="yes"?>
+<?rfc tocompact="yes"?>
+<?rfc tocdepth="3"?>
+<?rfc tocindent="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc sortrefs="yes"?>
+<?rfc comments="yes"?>
+<?rfc inline="yes"?>
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<rfc category="std" docName="draft-ietf-idr-multinexthop-attribute-01"
+     ipr="trust200902">
+  <front>
+    <title abbrev="BGP MultiNexthop attribute">BGP MultiNexthop
+    Attribute</title>
+
+    <author fullname="Kaliraj Vairavakkalai" initials="K." role="editor"
+            surname="Vairavakkalai">
+      <organization>Juniper Networks, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>1133 Innovation Way,</street>
+
+          <city>Sunnyvale</city>
+
+          <region>CA</region>
+
+          <code>94089</code>
+
+          <country>US</country>
+        </postal>
+
+        <email>kaliraj@juniper.net</email>
+      </address>
+    </author>
+
+    <author fullname="Minto Jeyananth" initials="M." surname="Jeyananth">
+      <organization>Juniper Networks, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>1133 Innovation Way,</street>
+
+          <city>Sunnyvale</city>
+
+          <region>CA</region>
+
+          <code>94089</code>
+
+          <country>US</country>
+        </postal>
+
+        <email>minto@juniper.net</email>
+      </address>
+    </author>
+
+    <author fullname="Mohan Nanduri" initials="M" surname="Nanduri">
+      <organization>Microsoft</organization>
+
+      <address>
+        <postal>
+          <street>1 Microsoft Way,</street>
+
+          <city>Redmond</city>
+
+          <region>WA</region>
+
+          <code>98052</code>
+
+          <country>US</country>
+        </postal>
+
+        <email>mohannanduri@microsoft.com</email>
+      </address>
+    </author>
+
+    <author fullname="Avinash Reddy" initials="" surname="Lingala">
+      <organization>AT&amp;T</organization>
+
+      <address>
+        <postal>
+          <street>3400 W Plano Pkwy,</street>
+
+          <city>Plano</city>
+
+          <region>TX</region>
+
+          <code>75075</code>
+
+          <country>US</country>
+        </postal>
+
+        <email>ar977m@att.com</email>
+      </address>
+    </author>
+
+    <date day="11" month="August" year="2024"/>
+
+    <abstract>
+      <t>Today, a BGP speaker can advertise one nexthop for a set of NLRIs in
+      an Update message. This nexthop can be encoded in either the top-level
+      BGP-Nexthop attribute (code 3), or inside the MP_REACH_NLRI attribute
+      (code 14). Forwarding information related to the nexthop is scattered
+      across various attributes, extended communities or the NLRI field.</t>
+
+      <t>This document defines a new optional non-transitive BGP attribute
+      called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD, that
+      can be used to carry an ordered set of one or more Nexthops in the same
+      Update message, with all forwarding information being carried in one
+      attribute, scoped on a per nexthop basis.</t>
+    </abstract>
+
+    <note title="Requirements Language">
+      <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+      "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+      document are to be interpreted as described in <xref
+      target="RFC2119">RFC 2119</xref>.</t>
+    </note>
+  </front>
+
+  <middle>
+    <section title="Introduction">
+      <t>Today, a BGP speaker can advertise one nexthop for a set of NLRIs in
+      an Update message. This nexthop can be encoded in either the top-level
+      BGP-Nexthop attribute (code 3), or inside the MP_REACH_NLRI attribute
+      (code 14). Forwarding information related to the nexthop is scattered
+      across various attributes, extended communities or the NLRI field.</t>
+
+      <t>This document defines a new optional non-transitive BGP attribute
+      called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD, that
+      can be used to carry an ordered set of one or more Nexthops in the same
+      route, with all forwarding information being carried in one attribute,
+      scoped on a per nexthop basis.</t>
+
+      <t/>
+    </section>
+
+    <section title="Terminology">
+      <t>iSN: Ingress Service Node</t>
+
+      <t>eSN: Egress Service Node</t>
+
+      <t>NLRI: Network Layer Reachability Information</t>
+
+      <t>AFI: Address Family Identifier</t>
+
+      <t>SAFI: Subsequent Address Family Identifier</t>
+
+      <t>PE : Provider Edge</t>
+
+      <t>RT : Route-Target extended community</t>
+
+      <t>RD : Route-Distinguisher</t>
+
+      <t>MPLS: Multi Protocol Label Switching</t>
+
+      <t>ECMP: Equal Cost Multi Path</t>
+
+      <t>WECMP: Weighted Equal Cost Multi Path</t>
+
+      <t>FRR: Fast Re Route</t>
+
+      <t>PNH : Protocol Next hop address carried in a BGP Update message</t>
+
+      <t>MNH: BGP MultiNextHop attribute</t>
+
+      <t>NFI: Nexthop Forwarding Information</t>
+
+      <t>FI: Forwarding Instruction</t>
+
+      <t>FA: Forwarding Argument</t>
+
+      <section title="Definitions">
+        <t>MULTI_NEXT_HOP (aka MNH): BGP MultiNexthop attribute. The new
+        attribute defined by this document.</t>
+
+        <t>MNH TLV: Top level TLV contained in a MULTI_NEXT_HOP.</t>
+
+        <t>NFI TLV: Nexthop Forwarding Information TLV, contained in a MNH
+        TLV.</t>
+
+        <t>FI TLV: Forwarding Instruction TLV, contained in a NFI TLV.</t>
+
+        <t>FA TLV: Forwarding Argument TLV, contained as an argument to a FI
+        in the FI TLV.</t>
+      </section>
+    </section>
+
+    <section title="Motivation">
+      <t>Today, in a BGP Update, forwarding information related to the BGP
+      nexthop is scattered across various attributes, extended communities or
+      the NLRI field. On some other address families like Flowspec, nexthop
+      address is carried without using the nexthop attribute, in one or more
+      extended communities of specific type. It may be desirable to carry them
+      scoped in a single attribute.</t>
+
+      <t>It may be desirable to carry the forwarding information for a nexthop
+      scoped in a single attribute, and uniformly for all address
+      families.</t>
+
+      <t>For cases where multiple nexthops need to be advertised, BGP Addpath
+      <xref target="RFC7911"/> is used with some address families. Though
+      Addpath allows basic ability to advertise multiple routes, it does not
+      allow the sender to express the desired relationship between the
+      multiple nexthops being advertised e.g., relative ordering, type of load
+      balancing, fast reroute. These are local decisions based on
+      configuration and path selection at the receiving node. Also, Addpath
+      does not consider things like Link-bandwidth community when selecting
+      add-path routes. Some scenarios (explained in Appendix A) may benefit
+      from having a mechanism, where egress node can signal multiple nexthops
+      along with their relationship to ingress nodes.</t>
+
+      <t>It would be desirable to have a common way to carry more than one
+      nexthop on a BGP route of any family, and express relationship between
+      them.</t>
+
+      <t>This document defines a new optional non-transitive BGP attribute
+      "MultiNexthop (MNH)" that can be used for these purposes. The MNH
+      attribute can be used in any BGP family that wants to carry one or more
+      nexthops, with all forwarding information being carried in one
+      attribute, scoped on a per nexthop basis.</t>
+
+      <t>E.g. The MNH can be used to advertise MPLS label along with nexthop
+      for labeled and unlabeled families (e.g. Inet Unicast, Inet6 Unicast,
+      Flowspec) alike. Such that, mechanisms at the transport layer can work
+      uniformly on labeled and unlabled BGP families to realize various
+      usecases.</t>
+    </section>
+
+    <section title="Base Encoding And Protocol Procedures">
+      <t>"MultiNexthop (MNH)" is a new BGP optional non-transitive attribute
+      (code TBD), that can be used to carry an ordered set of one or more
+      Nexthops in the same route, with all forwarding information being
+      carried in one attribute, scoped on a per nexthop basis. This attribute
+      describes forwarding instructions using TLVs as shown below.</t>
+
+      <t>This section describes the organization and encoding of the MNH
+      attribute.</t>
+
+      <figure anchor="eye-candy" suppress-title="false"
+              title="Overview of MNH Attribute Layout - Eye candy summary">
+        <artwork align="left" xml:space="preserve">
+
+          MNH Attribute: {
+                PrimaryPath {
+                    [Forwarding Instruction 1],
+                     ..
+                    [Forwarding Instruction n]
+                }
+                BackupPath {
+                    [Forwarding Instruction 1],
+                     ..
+                    [Forwarding Instruction n]
+                }
+          }
+
+          Forwarding Instruction: {
+              {FwdAction, Forwarding Arguments}
+          }
+        </artwork>
+      </figure>
+
+      <t>A MNH attribute consists of a Header and one or more "MNH TLVs".</t>
+
+      <t>A MNH TLV contains a Type and one unit of "Nexthop Forwarding
+      Information" (NFI TLV).</t>
+
+      <t>A NFI TLV contains one or more "Forwarding Instructions" (FI
+      TLVs).</t>
+
+      <t>A FI TLV contains a "Forwarding Action" code and one more "Forwarding
+      Arguments" (FA TLVs).</t>
+
+      <t>The FA TLVs describe the parameters required to complete a
+      "Forwarding Action".</t>
+
+      <section anchor="mnh-attr" title="MultiNexthop Attribute">
+        <figure anchor="fig-mnh-attr" suppress-title="false"
+                title="MultiNexthop - BGP Attribute">
+          <artwork align="left" xml:space="preserve">
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Attr. Flags  |Attr. Type Code|          Length               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |Ver| MNH-Flags |  Advt-PNH-Len |       Advertising PNH ..      |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                  .. Address                                   |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                       MNH TLV                                 ~
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    ~                       MNH TLV                                 |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+        </artwork>
+        </figure>
+
+        <figure>
+          <artwork>
+ MNH Header:
+   - Attr. Flags (1 octet)
+       BGP Path-attribute flags. indicating an Optional Non-Transitive
+       attribute. i.e. Optional bit set, Transitive bit reset.
+
+   - Attr. Type Code (1 octet)
+       Type code allotted by IANA. TBD.
+
+   - Length (1 or 2 octets)
+       One or Two bytes field stating length of attribute value in bytes.
+
+   - Version (2 bits)
+       MNH Version - indicates layout of the MNH header.
+       Set to 0x0 indicating "MNH v0", which is defined in this document.
+
+       If there is any significant changes to the skeletal layout of
+       MNH attribute in future, this Version field will be useful.
+
+   - MNH Flags (6 bits)
+
+           2 3 4 5 6 7
+          +-+-+-+-+-+-+
+          |R R R R R M|
+          +-+-+-+-+-+-+
+
+       6 bits following the Version bits are MNH Flags. 
+
+           M: "Mandatory". 
+              Value 1 indicates that this MNH attribute is mandatory.
+              If this MNH attr is invalid, the route is Unusable Hidden.
+              
+           R: Reserved. MUST be set to zero, SHOULD be ignored by receiver.
+
+   - Advt-PNH-Len (1 octet)
+       Length in octets (4 for IPv4, 16 for IPv6, 12 for VPN-IPv4,
+       24 for VPN-IPv6) of Advertising PNH Address.
+
+   - Advertising PNH Address (Advt-PNH-Len octets)
+       BGP Protocol Nexthop address advertised in NEXT_HOP or MP_REACH_NLRI attr.
+       Used to sanity-check the MNH attribute. In case of RFC-2545, this will be
+       the global (non link-local) IPv6 address.
+
+ MNH TLVs: One or more MNH TLVs are carried in a MNH attr.
+      MNH TLV is described in subsequent sections.
+
+ </artwork>
+        </figure>
+
+        <section title="Processing the MNH Header">
+          <t>A BGP speaker MUST fill MNH Version field to 0. </t>
+
+          <t>If a MNH is received with a Version other than 0, the MNH
+          attribute MUST be considered invalid, and be treated as Unrecognized
+          Non-transitive attribute.</t>
+
+          <t>The "Advertising PNH" field is validated as described in <xref
+          target="mnh-validate-nh"/></t>
+        </section>
+
+        <section anchor="mnh-validate-nh"
+                 title="Validation of MNH against Nexthop">
+          <t>When adding a MultiNexthop attribute to an advertised BGP route,
+          the speaker MUST put the same next-hop address in the Advertising
+          PNH field as it put in the Nexthop field inside MP_REACH_NLRI
+          attribute (code 14) if one exists, or the NEXT_HOP attribute (code
+          3).</t>
+
+          <t>A speaker that adds a new MNH attribute to the advertised BGP
+          route, it MUST record in the "Advertising PNH" field the same
+          next-hop address as used in MP_REACH_NLRI attribute if one exists,
+          or the NEXT_HOP attribute.</t>
+
+          <t>A speaker receiving a MNH attribute SHOULD ignore it if the
+          next-hop address contained in 'Advertising PNH' field is not the
+          same as the nexthop address contained in MP_REACH_NLRI attribute if
+          one exists, or the NEXT_HOP attribute. <xref target="RFC7606"/>
+          'Attribute Discard' approach is used.</t>
+
+          <t>In case of <xref target="RFC2545"/>, the global (non link-local)
+          IPv6 address should be used for this purpose.</t>
+
+          <t>As specified in <xref target="RFC7606"/>BGP update message can
+          contain no more than one instance of MP_REACH attribute or NEXT_HOP
+          attribute. Similarly, a BGP update MUST contain no more than one
+          instance of MNH attribute. If the MNH attribute (whether recognized
+          or unrecognized) appears more than once in an UPDATE message, then
+          all the occurrences of the attribute other than the first one SHALL
+          be discarded and the UPDATE message will continue to be processed.
+          The anamoly MAY be logged for diagnosis.</t>
+        </section>
+
+        <section title="Scope of Use, Origination and Propagation">
+          <t>The MNH attribute is intended to be used in a BGP free core,
+          between egress and ingress BGP speakers that understand this
+          attribute. These BGP speakers may have an intra-AS or inter-AS BGP
+          session between them. On propagating the route with nexthop altered,
+          a new MNH attribute MAY be added by the advertising speaker.</t>
+
+          <t>To avoid un-intentionally leaking the MNH to another AS, via a
+          BGP speaker that does not understand MNH attribute, it is defined as
+          "optional non-transitive". But this also means that a RR needs to be
+          upgraded to support this attribute before any PEs in the network can
+          make use of it.</t>
+
+          <t>Use of MNH on a BGP session is disabled by default. An
+          implementation MUST provide configuration control on a per BGP
+          neighbor address family basis, to enable MNH support.</t>
+
+          <t>A BGP speaker MUST NOT advertise MNH on a BGP route if MNH
+          support is not enabled for the corresponding address family on the
+          advertising BGP session.</t>
+
+          <t>If the MNH attribute is received on a BGP session where MNH
+          support is not enabled, the attribute MUST be treated as
+          Unrecognized non-transitive. This rule provides additional
+          protection against unintended propagation of this attribute, when
+          both BGP speakers understand MNH but receiver has not enabled the
+          support. A RFC3392 Capability is not used for this purpose, because
+          it would cause session reset whenever 'MNH support' config is
+          changed.</t>
+
+          <t>Remaining text in this section apply when both receiving and
+          advertising BGP sessions are enabled with MNH support.</t>
+
+          <t>When a BGP speaker receives the MNH attribute on a BGP route, and
+          re-advertises it with the nexthop unchanged, it MUST propagate the
+          attribute unchanged. E.g. a Route Reflector.</t>
+
+          <t>When a BGP speaker receives the MNH attribute on a BGP route, and
+          re-advertises it with the nexthop altered, it processes the
+          attribute but MUST NOT propagate it as-is. The BGP speaker MAY
+          however attach a new instance of MNH attribute on the re-advertised
+          route, and MAY derive its value from the received MNH.</t>
+
+          <t>A BGP speaker re-advertising a BGP route with nexthop unchanged
+          MAY add the MNH attribute on the reflected BGP route, on behalf of
+          the originating BGP speaker. The "Advertising PNH field" in the MNH
+          is set to the Nexthop field in BGP route being re-advertised.</t>
+        </section>
+
+        <section anchor="err-mnh-attr" title="Error Handling">
+          <t>A TLV or sub-TLV of a certain Type in a MNH attribute can occur
+          only once, unless specified otherwise by that type value. If
+          multiple instances of such TLV or sub-TLV is received, the instances
+          other than the first occurance are ignored.</t>
+
+          <t>If processing of a received MNH attribute resulted in an error,
+          then the "M bit" is used to decide the action. If the M bit is 0,
+          then the MNH attribute is ignored, <xref target="RFC7606"/>
+          'Attribute Discard' approach MUST be used, and continue to process
+          rest of the update. If M bit is 1, then the BGP Route containing the
+          MNH MUST be considered Unusable. </t>
+
+          <t>MNH employs a hierarchical error detection mechanism, where an
+          error in lower layer TLVs is percolated upwards to the MNH
+          attribute, based on the M bit.</t>
+
+          <t>Implementations MAY provide policy configuration to set M bit to
+          0 on a MNH attribute being added, this helps with testing impact of
+          the MNH on receiving nodes. Once confident, the MNH attribute can be
+          re-advertised with M bit set. This helps in graceful incremental
+          deployment. </t>
+
+          <t>The definition of a certain type of TLV or Sub-TLV in the MNH
+          should specify in it's procedures, the value of M bit to be used. An
+          implementation MAY provide configuration to set or reset the M bit.
+          </t>
+        </section>
+      </section>
+
+      <section anchor="mnh-tlv" title="MNH TLV">
+        <t>The type of MNH TLV describes how the forwarding information
+        carried in the MNH TLV is used.</t>
+
+        <figure anchor="mnh-tlv-fig" suppress-title="false" title="MNH TLV">
+          <artwork align="left" xml:space="preserve">
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  MNH-TLV Flags| MNH Type Code |          Length               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                              Value                            |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+          </artwork>
+        </figure>
+
+        <figure>
+          <artwork>
+
+ - MNH-TLV Flags (1 octet)
+
+           0 1 2 3 4 5 6 7
+          +-+-+-+-+-+-+-+-+
+          |R R R R R R R M|
+          +-+-+-+-+-+-+-+-+
+
+       All bits are reserved.
+
+           M: "Mandatory". 
+              Value 1 indicates that this MNH TLV is mandatory.
+              If this MNH TLV is not understood, the MNH attribute
+              containing it is considered invalid.
+
+           R: "Reserved". 
+              MUST be set to zero, SHOULD be ignored by receiver.
+
+ This document defines the following MNH TLV types:
+
+ - MNH Type Code (1 octet)
+      Type of MNH TLV. 0 is Reserved.
+
+ - Length
+    Length of Value portion in octects.
+
+ - Value
+    Value portion contains the NFI TLV.
+</artwork>
+        </figure>
+
+        <t>A sending BGP speaker advertises the information for one ore more
+        nexthops in a MNH TLV. </t>
+
+        <t>Information received in MNH TLV is used to create the Forwarding
+        state at receiving BGP speaker. </t>
+
+        <t>The MNH Type code indicates how the information carried in the TLV
+        is used at the receiving node.</t>
+
+        <section anchor="err-mnh-tlv" title="Error Handling">
+          <t>If invalid Type Code 0 is received, the TLV is ignored
+          irrespective of "M bit", and continue to process rest of the
+          update.</t>
+
+          <t>If the received Type Code is incompatible for the prefix in BGP
+          NLRI, the TLV is considered invalid.</t>
+
+          <t>If an unrecognized Type Code is received, or processing of a
+          recognized MNH TLV type results in an error, the TLV is considered
+          invalid. </t>
+
+          <t>Invalid TLV is handled based on the "M bit" on the TLV.</t>
+
+          <t>If the M bit is 0, then the TLV is ignored and continue to
+          process rest of the update. If M bit is 1, then the MNH attribute is
+          considered invalid, triggering the procedures in <xref
+          target="err-mnh-attr"/>. </t>
+        </section>
+      </section>
+
+      <section anchor="nfi-tlv" title="Nexthop Forwarding Information TLV">
+        <t>A Nexthop Forwarding Information TLV describes a MNH TLV. It
+        contains one or more Forwarding Instruction TLVs. These Forwarding
+        Instructions are the Forwarding Legs of the MNH.</t>
+
+        <figure anchor="nfi-tlv-fig" suppress-title="false"
+                title="Nexthop Forwarding Information TLV">
+          <artwork align="left" xml:space="preserve">
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |  NFI  Flags   |      Num-Nexthops             |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |        Forwarding Instruction TLV (F.I. TLV)                  ~
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      ~        Forwarding Instruction TLV (F.I. YLV)                  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+          </artwork>
+        </figure>
+
+        <figure>
+          <artwork>
+
+ - NFI Flags (1 octet)
+
+           0 1 2 3 4 5 6 7
+          +-+-+-+-+-+-+-+-+
+          |R R R R R R R M|
+          +-+-+-+-+-+-+-+-+
+
+           M: "Mandatory". 
+              Value 1 indicates that this NFI TLV (Nexthop Leg) is mandatory.
+              If this Nexthop Leg is not understood, the MNH TLV
+              containing it is considered invalid.
+
+           R: "Reserved". 
+              MUST be set to zero, SHOULD be ignored by receiver.
+
+ - Num-Nexthops
+        Number of F.I. TLVs.
+
+ - Forwarding Instruction TLV
+        Each F.I. TLV describes a Nexthop Leg.
+        Layout of Forwarding Instruction TLV is described in next section.
+
+</artwork>
+        </figure>
+
+        <t>M bit on a NFI TLV SHOULD be set to 1.</t>
+
+        <section anchor="err-nfi-tlv" title="Error Handling">
+          <t>If Num-Nexthops in a received NFI is 0, it is considered invalid.
+          Irrespective of M bit value, the NFI TLV is ignored and remaining
+          update is processed. </t>
+
+          <t>The receiving BGP speaker MAY consider the "Num-Nexthops" value
+          in a Nexthop Forwarding Information TLV not acceptable, based on
+          it's forwarding capabilities or local policy. In such cases, the NFI
+          TLV is considered Invalid.</t>
+
+          <t>An Invalid NFI TLV is handled based on value of M bit on it. If
+          the M bit is 0, the NFI TLV is ignored, and remaining update
+          continue to be processed. If M bit is 1, the MNH TLV carrying this
+          NFI is considered Invalid, triggering the procedures in <xref
+          target="err-mnh-tlv"/>.</t>
+        </section>
+      </section>
+
+      <section anchor="fi-tlv" title="Forwarding Instruction TLV">
+        <t>Each Forwarding Instruction TLV describes a Nexthop Leg. It
+        expresses a "Forwarding Action" (FwdAction) along with arguments
+        required to complete the action. The type of actions defined by this
+        TLV are given below. The arguments are denoted by "Forwarding Argument
+        TLVs". The Forwarding Argument TLVs takes appropriate values based on
+        the FwdAction.</t>
+
+        <t>Each FwdAction should note the Arguments needed to complete the
+        action. Any extranous arguments should be ignored. If the minimum set
+        of arguments required to complete an action is not received, the
+        Forwarding Instruction TLV should be ignored. Appropriate logging and
+        diagnostic info MAY be provided by an implementation to help
+        troubleshoot such scenarios.</t>
+
+        <figure anchor="fi-tlv-fig" suppress-title="false"
+                title="Forwarding Instruction TLV">
+          <artwork align="left" xml:space="preserve">
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |  F.I. Flags   |          Relative Pref        |  FwdAction    |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |            Length             |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                   Fwd Argument TLV                            ~
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      ~                   Fwd Argument TLV                            |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+          </artwork>
+        </figure>
+
+        <figure>
+          <artwork>
+  - F.I. Flags (1 octet)
+
+           0 1 2 3 4 5 6 7
+          +-+-+-+-+-+-+-+-+
+          |R R R R R R R M|
+          +-+-+-+-+-+-+-+-+
+
+           M: "Mandatory". 
+              Value 1 indicates that this Forwarding Instruction is mandatory.
+              If this instruction is not understood, the NFI TLV
+              containing it is considered invalid.
+
+           R: "Reserved". 
+              MUST be set to zero, SHOULD be ignored by receiver.
+
+ - Relative Pref (2 octets)
+
+     Unsigned 2 octet integer specifying relative order or preference, among
+     the many forwarding instructions, to use in FIB. All usable nexthop legs
+     with lowest relative-pref are installed in FIB as primary-path. Thus if
+     multiple legs exist with that lowest relative-pref, ECMP is formed.
+
+ - FwdAction (1 octet)
+
+     Type Code denoting the Forwarding action to be performed by receiving node.
+     0 is Reserved.
+
+ - Length (2 octets)
+
+    Length in octets, of all Forwarding Argument TLVs.
+
+</artwork>
+        </figure>
+
+        <t>Definition of a Forwarding Action should specify the set of
+        forwarding arguments required to execute the action, and value of M
+        bit.</t>
+
+        <section anchor="err-fi-tlv" title="Error Handling">
+          <t>If an Invalid value of 0 is received as FwdAction, the TLV is
+          ignored irrespective of "M bit", and continue to process rest of the
+          update..</t>
+
+          <t>If an unrecognized or unsupported FwdAction is received, the FI
+          TLV is considered Invalid.</t>
+
+          <t>If a certain Forwarding Action is unable to be executed because
+          the set of required arguments are not available, the FI TLV is
+          considered Invalid. If a certain Forwarding Action is applied to an
+          incompatible NLRI, the FI TLV is considered Invalid. </t>
+
+          <t>An Invalid FI TLV is handled based on value of M bit on it. If
+          the M bit is 0, the FI TLV is ignored, and remaining update continue
+          to be processed. If M bit is 1, the NFI TLV carrying this NFI is
+          considered Invalid, triggering the procedures in <xref
+          target="err-nfi-tlv"/>.</t>
+        </section>
+      </section>
+
+      <section anchor="fa-tlv" title="Forwarding Argument TLV">
+        <t>The Forwarding Argument TLV describes various parameters required
+        to execute a FwdAction.</t>
+
+        <t/>
+
+        <figure anchor="fa-tlv-fig" suppress-title="false"
+                title="Forwarding Argument TLV">
+          <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code            |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     |     Value                                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+          </artwork>
+        </figure>
+
+        <figure>
+          <artwork>
+ - F.A. Flags (1 octet)
+
+           0 1 2 3 4 5 6 7
+          +-+-+-+-+-+-+-+-+
+          |R R R R R E C M|
+          +-+-+-+-+-+-+-+-+
+
+           M: "Mandatory". 
+              Value 1 indicates that this argument is mandatory for the Forwarding Action.
+              If this argument is not understood, the FI TLV containing it
+              is considered invalid.
+
+           C: "Cummulative". 
+              Request nodes to accumulate value in re-advertised MNH.
+              By default Forwarding Arguments are not commulative, so C bit is 0
+              unless otherwise specified by the forwarding argument type.
+
+           E: "Egress Attached". 
+              This bit is maintained when C bit is set to 1.
+              E bit is set to 1 if a cummulative argument is being added to a route
+              with empty AS-path.
+
+           R: "Reserved". 
+              MUST be set to zero, SHOULD be ignored by receiver.
+
+
+ - F.A. Type Code (2 octets)
+
+    Type Code of Forwarding Argument. 0 is Reserved.
+
+ - Length (2 octets)
+
+    Length in bytes of Value field.
+
+           </artwork>
+        </figure>
+
+        <t>The C bit is set to 1 on attributes that need to be accumulated
+        across BGP nexthop-self propagation hops. If a received MNH has a FA
+        with C bit 1, it MUST be set to 1 on the FA inserted in any advertised
+        MNH also. The value of the FA in the advertised MNH MAY be derived
+        from the value of the FA in the received MNH. The specific FA SHOULD
+        define the procedure on how the accumulation of value happens for the
+        specific type of FA. </t>
+
+        <t>If a received MNH has a FA with C bit 1, and receiving speaker is
+        unable to perform the accumulation of FA, it MUST NOT include the FA
+        type in any advertised MNH.</t>
+
+        <t>A FA that need to be accumulated end-to-end may want to know if the
+        cummulative value denotes the path until the Egress node. The E bit
+        denotes that the FA was originated by the Egress node that originated
+        this BGP route. The E bit is set to 1 by the node adding the FA, if
+        the AS-path on the route is empty. The E bit value received on a MNH
+        MUST be propagated on the MNH added to the re-advertisement. This
+        allows the Ingress node to see the E bit value set by the Egress node.
+        </t>
+
+        <section anchor="err-fa-tlv" title="Error Handling">
+          <t>If an Invalid F.A. Type Code value of 0 is received, the TLV is
+          ignored irrespective of "M bit", and continue to process rest of the
+          update..</t>
+
+          <t>If an unrecognized F.A. Type Code is received, the FA TLV is
+          considered Invalid.</t>
+
+          <t>An Invalid FA TLV is handled based on value of M bit on it. If
+          the M bit is 0, the FA TLV is ignored, and remaining update continue
+          to be processed. If M bit is 1, the FI TLV carrying this FA is
+          considered Invalid, triggering the procedures in <xref
+          target="err-fi-tlv"/>.</t>
+        </section>
+      </section>
+
+      <section title="Interaction with Addpath">
+        <t><xref target="ADDPATH-GUIDELINES"/> suggests the following:</t>
+
+        <t>"Diverse path: A BGP path associated with a different BGP next-hop
+        and BGP router than some other set of paths. The BGP router associated
+        with a path is inferred from the ORIGINATOR_ID attribute or, if there
+        is none, the BGP Identifier of the peer that advertised the path."</t>
+
+        <t>When selecting "diverse paths" for ADD_PATH as specified above, the
+        MNH attribute should also be compared if it exists, to determine if
+        two routes have "different BGP next-hop".</t>
+      </section>
+
+      <section title="Path Selection Considerations">
+        <section title="Determining IGP Cost">
+          <t>While tie breaking in the path-selection as described in <xref
+          target="RFC4271"/>, 9.1.2.2. step (e) viz. the "IGP cost to
+          nexthop", consider the highest cost among the nexthop-legs present
+          in this attribute.</t>
+
+          <t>The IGP cost thus calculated is also used when constructing AIGP
+          TLV (<xref target="RFC7311"/>)</t>
+        </section>
+      </section>
+    </section>
+
+    <section title="TLVs Defined In This Document">
+      <t>This section describes the initial set of MNH TLVs, Forwarding
+      Instructions and Arguments that this document defines.</t>
+
+      <section anchor="def-mnh-tlv" title="MNH TLVs">
+        <t>The type of MNH TLV describes how the forwarding information
+        carried in the MNH TLV is used.</t>
+
+        <figure>
+          <artwork> This document defines the following MNH TLV types:
+
+  MNH Type Code        Meaning
+ --------------     -------------
+       0           Reserved
+       1           Primary forwarding path
+       2           Backup forwarding path
+
+
+ - Length
+    Length of Value portion in octects.
+
+ - Value
+    Value portion contains the NFI TLV.
+</artwork>
+        </figure>
+
+        <t/>
+
+        <t>Type codes 1 and 2 are applicable for upstream allocated prefixes,
+        example IP, Upstream MPLS labels, Flowspec routes.</t>
+
+        <t>Note that usage of Type code 1 in a BGP route containing IP prefix
+        gives similar result as advertising the route with nexthop contained
+        in BGP path-attributes: Nexthop (code 3) or MP_REACH_NLRI (code
+        14).</t>
+
+        <t>Upstream allocation for MPLS routes is achieved by using mechanisms
+        explained in <xref target="MPLS-NAMESPACES"/>.</t>
+
+        <t>If an invalid Type Code 0 is received, the TLV is ignored, and
+        continue to process rest of the update.</t>
+
+        <t>If the received Type Code is incompatible for the prefix in BGP
+        NLRI, the TLV should be ignored.</t>
+
+        <section anchor="upstr-prim" title="Primary Forwarding Path">
+          <t>This is a <xref target="mnh-tlv">MNH TLV</xref> with MNH Type
+          Code = 1, called "Primary Forwarding Path"</t>
+
+          <t>This TLV describes forwarding state to be programmed at receiving
+          speaker as Primary Path nexthop leg. This TLV is used with Upstream
+          allocated or global scope prefixes carried in BGP NLRI. Value part
+          of this TLV contains Nexthop Forwarding Information TLV.</t>
+
+          <t>A BGP speaker uses the nexthop forwarding information received in
+          this TLV as a primary path nexthop leg when programming the route
+          for the NLRI prefix in its Forwarding table.</t>
+
+          <figure anchor="prim-tlv-fig" suppress-title="false"
+                  title="Primary forwarding path TLV">
+            <artwork align="left" xml:space="preserve">
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  MNH-TLV Flags|  MNH Type = 1 |          Length               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |               Nexthop Forwarding Information TLV              |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+          </artwork>
+          </figure>
+        </section>
+
+        <section anchor="upstr-bkp" title="Repair Forwarding Path">
+          <t>This is a <xref target="mnh-tlv">MNH TLV</xref> with MNH Type
+          Code = 2, called "Repair Forwarding Path"</t>
+
+          <t>This TLV describes forwarding state to be programmed during
+          traffic repair at receiving speaker. i.e. This TLV is used to
+          program a backup path. This TLV is used with Upstream allocated
+          prefixes or global scoped prefixes. Value part contains Nexthop
+          Forwarding Information TLV.</t>
+
+          <t>Signaling a different nexthop for use as backup path is desirable
+          in some labeled forwarding scenarios, where two multihomed edge
+          devices use each other as backup path to protect traffic when
+          primary path fails.</t>
+
+          <t>This is required to avoid label advertisement oscillation between
+          the multihomed PEs when they implement per-nexthop label allocation
+          mode.</t>
+
+          <t>The label advertised by a PE1 for primary path advertisement is
+          allocated/forwarded using external paths as primary leg and
+          backup-path label from other multihomed PE2 as backup-path label.
+          Such that primary-path label allocation at PE1 is not a function of
+          the primary-path label advertised by PE2. Thus the primary path
+          label remains stable at a PE and does not change when a new primary
+          path label is received from the other multihomed PE. This prevents
+          the label oscillation problem.</t>
+
+          <figure anchor="bkp-tlv-fig" suppress-title="false"
+                  title="Repair forwarding path TLV">
+            <artwork align="left" xml:space="preserve">
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  MNH-TLV Flags|  MNH Type = 2 |          Length               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |               Nexthop Forwarding Information TLV              |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+          </artwork>
+          </figure>
+
+          <t>The backup path label allocated and advertised by a PE is a
+          function of only the primary path. E.g. path to the CE device. So
+          this label value does not change when a new label is received from
+          the other multihomed PE</t>
+        </section>
+      </section>
+
+      <section anchor="def-fi-tlv" title="Forwarding Actions in FI TLV">
+        <t>Each Forwarding Instruction TLV describes a Nexthop Leg. It
+        expresses a "Forwarding Action" (FwdAction) along with arguments
+        required to complete the action. The type of actions defined by this
+        TLV are given below. The arguments are denoted by "Forwarding Argument
+        TLVs". The Forwarding Argument TLVs takes appropriate values based on
+        the FwdAction.</t>
+
+        <t>Each FwdAction should note the Arguments needed to complete the
+        action. Any extranous arguments should be ignored. If the minimum set
+        of arguments required to complete an action is not received, the
+        Forwarding Instruction TLV should be ignored. Appropriate logging and
+        diagnostic info MAY be provided by an implementation to help
+        troubleshoot such scenarios.</t>
+
+        <figure>
+          <artwork>
+Following Forwarding Actions are defined by this document.
+
+ FwdAction         Meaning
+ ---------      -------------
+       0        Reserved
+       1        Forward
+       2        Pop-And-Forward
+       3        Swap
+       4        Push
+       5        Pop-And-Lookup
+       6        Replicate
+
+   Forwarding Instruction TLV with unknown FwdAction should be ignored, skipped
+   and rest of the attribute processed; gracefully handling the error. The event
+   may be appropriately logged for diagnosis.
+
+ - Length (2 octets)
+
+    Length in octets, of all Forwarding Argument TLVs.
+
+</artwork>
+        </figure>
+
+        <t/>
+
+        <t>Meaning of most of the above FwdAction semantics is well
+        understood. FwdAction 1 is applicable for both IP and MPLS routes.
+        FwdActions 2-5 are applicable for encapsulated payloads (like MPLS)
+        only. FwdActions 1, 6 are applicable for Flowspec routes for Redirect
+        and Mirror actions. FwdAction 6 can also be used to indicate multicast
+        replication like functionality.</t>
+
+        <t>The "Forward" action means forward the IP/MPLS packet with the
+        destination prefix (IP-dest-addr/MPLS-label) value unchanged. For IP
+        routes, this is the forwarding-action given for next-hop addresses
+        contained in BGP path-attributes: Nexthop (code 3) or MP_REACH_NLRI
+        (code 14). For MPLS routes, usage of this action is equivalent to SWAP
+        with same label-value; one such usage is explained in <xref
+        target="MPLS-NAMESPACES"/> when Upstream-label-allocation is in
+        use.</t>
+
+        <t>The "Pop-And-Forward" action means Pop the payload header (e.g.
+        MPLS-label) and forward the payload towards the Nexthop IP-address
+        specified in the Endpoint Id TLV, using appropriate encapsulation to
+        reach the Nexthop.</t>
+
+        <t>When applied to MPLS packet, the "Pop-And-Lookup" action may result
+        in a MPLS-lookup or an upper-layer header (like IPv4, IPv6) lookup,
+        depending on whether the label that was popped was the bottom of stack
+        label.</t>
+
+        <t>If an incompatible FwdAction is received for a prefix-type, or an
+        unsupported FwdAction is received, it is considered a semantic-error
+        and MUST be dealt with as explained in "Error handling procedures"
+        section.</t>
+      </section>
+
+      <section anchor="def-fa-tlv" title="Forwarding Argument TLVs">
+        <t>The Forwarding Argument TLV describes various parameters required
+        to execute a FwdAction.</t>
+
+        <t/>
+
+        <figure>
+          <artwork>
+Following types of Forwarding Argument are defined by this document.
+
+  F.A. Type Code  Meaning
+  -------------  ---------
+     0           Reserved
+     1           Endpoint Identifier
+     2           Path Constraints
+     3           Payload encapsulation info signaling
+     4           Endpoint attributes advertisement
+
+ - Length (2 octets)
+
+    Length in bytes of Value field.
+
+           </artwork>
+        </figure>
+
+        <section anchor="ep-tlv" title="Endpoint Identifier">
+          <t>This is a <xref target="fa-tlv">Forwarding Argument</xref> with
+          F.A. Type Code = 1. It identifies an Endpoint of certain type.</t>
+
+          <t/>
+
+          <figure anchor="ep-tlv-fig" suppress-title="false"
+                  title="Endpoint Identifier">
+            <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code =1         |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Endpoint Type |  Endpoint Len | Endpoint Value|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                  Endpoint Value                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+          </artwork>
+          </figure>
+
+          <figure>
+            <artwork>
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+ - Length (2 octets)
+    Length in bytes of Value field.
+
+
+  Endpoint Type   Value                    Len (octets)
+  -------------  ---------                ---------------------
+     0           Reserved
+     1           IPv4 Address                4
+     2           IPv6 Address                16
+     3           MPLS Label (Upstream        4
+                            allocated or
+                            Global scope)
+     4           Fwd Context RD              8
+     5           Fwd Context RT              8
+
+ - Endpoint Len (1 octet)
+
+    Length in bytes of Endpoint Value field.
+
+           </artwork>
+          </figure>
+        </section>
+
+        <section anchor="constrain-tlv" title="Path Constraints">
+          <t>This is a <xref target="fa-tlv">Forwarding Argument</xref> with
+          F.A. Type Code = 2. It defines Constraints for Path to the
+          Endpoint..</t>
+
+          <t/>
+
+          <figure anchor="constrain-tlv-fig" suppress-title="false"
+                  title="Path Constraints">
+            <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 2        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | ConstrainType | Constrain Len | ConstrainValue|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                  ConstrainValue                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+          </artwork>
+          </figure>
+
+          <figure>
+            <artwork>
+
+   - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+   - Length (2 octets)
+       Length in bytes of Value field.
+
+  ConstrainType             Value                Len (octets)
+  -------------  -------------------------    ---------------------
+     0           Reserved
+     1           Proximity check                 2
+     2           Transport Class ID (Color)      4
+     3           Load balance factor             2
+
+  - Constrain Len (1 octet)
+
+    Length in bytes of Constrain Value field.
+
+   - Proximity check Flags (2 octets)
+        Flags describing whether the nexthop endpoint is expected to be single hop
+        away, or multihop away. Format of flags is described in next section.
+
+   - Transport Class ID (Color):
+
+    This is a 32 bit identifier, associated with the Nexthop address.
+    The Nexthop IP-address specified in "Endpoint Identifier" TLVs
+    are resolved over tunnels of this color.
+    Defined in [BGP-CT] [draft-kaliraj-idr-bgp-classful-transport-planes]
+
+   - Load balance factor (2 octets)
+          Balance Percentage
+
+           </artwork>
+          </figure>
+
+          <section anchor="proxim-tlv" title="Proximity Check">
+            <t>Usually EBGP singlehop received routes are expected to be one
+            hop away, directly connected. And IBGP received routes are
+            expected to be multihop away. Implementations today provide
+            configuring exceptions to this rule.</t>
+
+            <t>The 'expected proximity' of the Nexthop can be signaled to the
+            receiver using the Proximity check flags. Such that irrespective
+            of whether the route is received from IBGP/EBGP peer, it can be
+            treated as a single-hop away or multihop away nexthop.</t>
+
+            <t>The format of the Proximity check Sub-TLV is as follows:</t>
+
+            <figure anchor="proxim-tlv-fig" suppress-title="false"
+                    title="Proximity check constrain">
+              <artwork align="left" xml:space="preserve">
+   0                   1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |  F.A. Flags   |     F.A. Type Code = 2        |  Length       |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |    Length     |ConstrainType=1|  Len = 2      |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |       Proximity Check Flags   |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Proximity check Flags (2 octets)
+
+           0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+          |S M R R R R R R R R R R R R R R|
+          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+           S: Restrict to Singlehop path.
+           M: Expect Multihop path.
+           R: Reserved. MUST be set to zero, SHOULD be ignored by receiver.
+
+</artwork>
+            </figure>
+
+            <t>This TLV would be valid with Forwarding Instructions TLV with
+            FwdAction of Forward, Pop-And-Forward, Swap or Push.</t>
+
+            <t>When S bit is set, receiver considers the nexthop valid only if
+            it is directly connected to the receiver.</t>
+
+            <t>When M bit is set, receiver assumes that the nexthop can be
+            multiple hops away, and resolves the path to the nexthop via
+            another route.</t>
+
+            <t>When both S and M bits are set, M bit behavior takes
+            precedence. When both S and M bits are Clear, the current behavior
+            of deriving proximity from peer type (EBGP is singlehop, IBGP is
+            multihop) is followed.</t>
+          </section>
+
+          <section anchor="tc-tlv" title="Transport Class ID (Color)">
+            <t>The Nexthop can be associated with a Transport Class, so as to
+            resolve a path that satisfies required Transport tunnel
+            characteristics. Transport Class is defined in <xref
+            target="BGP-CT"/></t>
+
+            <t>Transport Class is a per-nexthop scoped attribute. Without MNH,
+            the Transport class is applied to the nexthop IP-address encoded
+            in the BGP-Nexthop attribute (code 3), or inside the MP_REACH_NLRI
+            attribute (code 14). With MNH, the Transport Class can be
+            specified per Nexthop-Leg (Forwarding Instruction TLV). It is
+            applied to the IP-address encoded in the Endpoint Identifier TLV
+            of type "IPv4 Address", "IPv6 Address" , "MPLS Label (Upstream
+            allocated or Global scope)".</t>
+
+            <t>The format of the Transport Class ID Sub-TLV is as follows:</t>
+
+            <figure anchor="tc-tlv-fig" suppress-title="false"
+                    title="Transport Class ID (Color)">
+              <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 2        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     |ConstrainType=2|  Len = 4      | Transport..   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  .. Class ID (4 bytes)        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Transport Class ID (Color):
+    This is a 32 bit identifier, associated with the Nexthop address.
+    The Nexthop specified in Endpoint Identifier TLVs
+    are resolved over tunnels of this color.
+  Defined in [BGP-CT] [draft-kaliraj-idr-bgp-classful-transport-planes]
+</artwork>
+            </figure>
+
+            <t/>
+
+            <t>This TLV would be valid with Forwarding Instructions TLV with
+            FwdAction of Forward, Swap or Push.</t>
+          </section>
+
+          <section anchor="lb-perc" title="Load Balance Factor">
+            <t/>
+
+            <figure anchor="lb-perc-tlv-fig" suppress-title="false"
+                    title="Load Balance Factor">
+              <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 2        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     |ConstrainType=3|  Len = 2      |   Balance..   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|.. Percentage  |
++-+-+-+-+-+-+-+-+
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+ - Length (2 octets)
+       Length in bytes of Value field.
+
+ - Len (1 octet)
+    Length of the Constrain Value field.
+
+ - Balance Percentage:
+    This is the explicit "balance percentage" requested by the sender,
+    for unequal load-balancing over these Nexthop-Descriptor-TLV legs.
+    This balance percentage would override the implicit
+    balance-percentage calculated using "Bandwidth" attribute
+    sub-TLV.
+</artwork>
+            </figure>
+
+            <t/>
+
+            <t>This sub-TLV would be valid with Forwarding Instructions TLV
+            with FwdAction of Forward, Swap or Push.</t>
+
+            <t>This is the explicit "balance percentage" requested by the
+            sender, for unequal load-balancing over these
+            Nexthop-Descriptor-TLV legs. This balance percentage would
+            override the implicit balance-percentage calculated using
+            "Bandwidth" attribute sub-TLV</t>
+
+            <t>When the sum of "balance percentage" on the nexthop legs does
+            not equal 100, it is scaled up or down to match 100. The
+            individual balance percentages in each nexthop leg are also scaled
+            up or down proportionally to determine the effective balance
+            percentage per nexthop leg.</t>
+          </section>
+        </section>
+
+        <section anchor="encap-tlv" title="Payload Encapsulation Info">
+          <t>This is a <xref target="fa-tlv">Forwarding Argument</xref> with
+          F.A. Type Code = 3. It defines Payload Encapsulation
+          Information.</t>
+
+          <t/>
+
+          <figure anchor="encap-tlv-fig" suppress-title="false"
+                  title="Payload Encapsulation Info">
+            <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code =3         |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Encap Type  |         Encap Len               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Encap Value                                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+          </artwork>
+          </figure>
+
+          <figure>
+            <artwork>
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+ - Length (2 octets)
+       Length in bytes of Value field.
+
+   Endcap Type        Value
+  -------------  --------------
+     0           Reserved
+     1           MPLS Label Info
+     2           SR MPLS label Index Info
+     3           SRv6 SID info
+     4           DSCP code point
+
+ - Encap Len (2 octets)
+
+    Length in octets of Encap Value field.
+
+           </artwork>
+          </figure>
+
+          <section title="MPLS Label Info">
+            <figure anchor="mpls-tlv-fig" suppress-title="false"
+                    title="MPLS Label Info">
+              <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code =3         |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Encap Type=1 |          Encap Len             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      L.V. Flags (2 bytes)    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| MPLS Label (20 bits) |Rsrv |S~
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~ MPLS Label (20 bits) |Rsrv |S|
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+          </artwork>
+            </figure>
+
+            <figure>
+              <preamble/>
+
+              <artwork>
+
+  - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Encap Type
+     = 1, to signify MPLS Label Info.
+
+  - Encap Len (2 octets)
+       Length in bytes of following Encap Value field.
+
+  - L.V. Flags (2 octets):
+
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |E R R R R R R R R R R R R R R R|
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+       E: ELC bit. Indicates if this egress NH is Entropy Label Capable.
+             1 means the Entropy Label capable.
+             0 means not capable to handle Entropy Label.
+
+       R: Reserved. MUST be set to zero, SHOULD be ignored by receiver.
+
+  - MPLS Label, Rsrv, S bit.
+      20 bit MPLS Label stack encoded as in RFC 8277.
+      S bit set on last label in label stack.
+
+
+          </artwork>
+            </figure>
+          </section>
+
+          <section title="SR MPLS Label Index Info">
+            <figure anchor="sr-mpls-idx-tlv-fig" suppress-title="false"
+                    title="SR MPLS Label Index Info">
+              <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code =3         |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Encap Type=2 |            Encap Len           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   RESERVED    |       LI Flags                |    Label ..   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                ..Index                        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+          </artwork>
+            </figure>
+
+            <figure>
+              <preamble/>
+
+              <artwork>
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Encap Type
+     = 2, to signify SR MPLS SID Info.
+
+  - Encap Len (2 octets)
+       Length in bytes of following Encap Value field.
+
+  Rest of the value portion is encoded as specified in RFC-8669 sec 3.1.
+
+  - RESERVED:  8-bit field. MUST be set to zero, SHOULD be ignored by receiver.
+
+  - LI Flags:  16 bits of flags. None defined. MUST be set to zero, SHOULD be ignored by receiver.
+
+  - Label Index:
+      32-bit value representing the index value in the SRGB space.
+
+          </artwork>
+            </figure>
+          </section>
+
+          <section title="SRv6 SID Info">
+            <figure anchor="srv6-sid-tlv-fig" suppress-title="false"
+                    title="SRv6 SID Info">
+              <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code =3         |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Encap Type=3 |           Encap Len            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         .. SRv6 SID Info (variable)                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+          </artwork>
+            </figure>
+
+            <figure>
+              <preamble/>
+
+              <artwork>  - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Encap Type
+  	  = 3, to signify SRv6 SID Info.
+
+  - Encap Len (2 octets)
+       Length in bytes of following Encap Value field.
+
+  - SRv6 SID Info:
+        SRv6 SID Information, as specified in RFC-9252 sec 3.1.
+
+          </artwork>
+            </figure>
+          </section>
+
+          <section title="DSCP">
+            <figure anchor="dscp-tlv-fig" suppress-title="false" title="DSCP">
+              <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 3        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Encap Type=4 |           Encap Len            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|DSCP code point|
++-+-+-+-+-+-+-+-+
+
+          </artwork>
+            </figure>
+
+            <figure>
+              <preamble/>
+
+              <artwork>  - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Encap Type
+  	  = 4, to signify DSCP code point.
+
+  - Encap Len (2 octets)
+      = 1, Length in bytes of following Encap Value field.
+
+  - DSCP code point:
+        DS Field, as specified in RFC-2474 sec 3.
+
+          </artwork>
+            </figure>
+          </section>
+        </section>
+
+        <section anchor="epattr-tlv" title="Endpoint Attributes">
+          <t>This is a <xref target="fa-tlv">Forwarding Argument</xref> with
+          F.A. Type Code = 4. It defines Attributes of an Endpoint.</t>
+
+          <t/>
+
+          <figure anchor="epattr-tlv-fig" suppress-title="false"
+                  title="Endpoint attributes">
+            <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 4        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Attrib Type  |    Attr Len    |  Attr  Value  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                    Attr Value                                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+          </artwork>
+          </figure>
+
+          <figure>
+            <artwork>
+
+   EP Attrib Type      Attrib Value               Attrib Len (octets)
+  ----------------  ------------------            ---------------------
+     0               None
+     1               Endpoint Bandwidth               8
+     2               Accumuated Metric                Variable
+
+           </artwork>
+          </figure>
+
+          <section anchor="ep-bw" title="Endpoint Bandwidth">
+            <t/>
+
+            <figure anchor="ep-bw-tlv-fig" suppress-title="false"
+                    title="Endpoint Bandwidth">
+              <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 4        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Attrib Type 1|    Attr Len=8  |  Attr  Value  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Bandwidth (8 octets)                        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Bandwidth (contd.)                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+- Len (2 octets)
+    Length in bytes of remaining portion of SubTLV.
+
+- Bandwidth
+    The bandwidth to the endpoint expressed as 8 octets,
+    units being bits per second.
+</artwork>
+            </figure>
+
+            <t/>
+
+            <t>This sub-TLV would be valid with Forwarding Instruction TLV
+            with FwdAction of Forward, Swap or Push.</t>
+          </section>
+
+          <section anchor="ep-ametric" title="Accumulated Metric to Endpoint">
+            <t/>
+
+            <figure anchor="ep-ametric-tlv-fig" suppress-title="false"
+                    title="Accumulated Metric to Endpoint">
+              <artwork align="left" xml:space="preserve">
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 4        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Attrib Type 2|    Metric Type |  Metric Len   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Metric Value (variable)                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+        C: Cummulative bit is set to 1 by originator of this argument.
+
+
+- Len (2 octets)
+    Length in bytes of remaining portion of SubTLV.
+
+- Metric Type: Type from "IGP Metric-Type" IANA registry under IGP Parameters
+   Following types are defined by this document to be accumulated:
+      0 IGP Metric
+      1 Min Unidirectional Link Delay as defined in [RFC8570, Section 4.2]
+
+- Metric Len: Length in octets of Metric Value field.
+      IGP Metric: 4
+      Min Unidirectional Link Delay: 4
+
+- Metric Value:
+      IGP Metric: 4 octet Accumulated IGP cost
+      Min Unidirectional Link Delay: 4 octet Accumulated min delay in microseconds.
+</artwork>
+            </figure>
+
+            <t/>
+
+            <t>This sub-TLV would be valid with Forwarding Instruction TLV
+            with FwdAction of Forward, Swap or Push.</t>
+          </section>
+        </section>
+      </section>
+    </section>
+
+    <section title="Scaling Considerations">
+      <t>The MNH attribute allows receiving multiple nexthops on the same BGP
+      session. This flexibility also opens up the possibility that a peer can
+      send large number of multipath (ECMP/UCMP/FRR) nexthops that may
+      overwhelm the local system's forwarding plane. Prefix-limit based checks
+      will not avoid this situation.</t>
+
+      <t>To keep the scaling limits under check, a BGP speaker MAY keep
+      account of number of unique multipath nexthops that are received from a
+      BGP peer, and impose a configurable max-limit on that. This is
+      especially useful for EBGP peers.</t>
+
+      <t>A good scaling property of conveying multipath nexthops using the MNH
+      attribute with N nexthop legs on one BGP session, as against BGP routes
+      on N BGP sessions is that, it limits the amount of transitionary
+      multipath combinatorial state in the latter model. Because the final
+      multipath state is conveyed by one route update in deterministic manner,
+      there is no transitionary multipath combinatorial explosion created
+      during establishment of N sessions.</t>
+    </section>
+
+    <section anchor="IANA" title="IANA Considerations">
+      <t>This document makes request to IANA to allocate the following codes
+      in BGP attributes registry.</t>
+
+      <section title="BGP Path Attributes">
+        <t>A new BGP attribute code TBD for "BGP MultiNexthop Attribute
+        (MULTI_NEXT_HOP)", in "BGP Path Attributes" registry.</t>
+      </section>
+
+      <section title="Capability Codes">
+        <t>This document makes request to IANA to allocate a BGP capability
+        code TBD for "BGP MultiNexthop Attribute (MULTI_NEXT_HOP), in
+        "Capability Codes" registry.</t>
+      </section>
+
+      <section title="BGP MultiNextHop Attribute">
+        <t>This document requests IANA to create a new registry group for
+        MultiNextHop attribute, and the following registries in it.</t>
+
+        <section title="MultiNextHop (MNH) TLV Types">
+          <t>This is a Registry for Type codes in <xref target="mnh-tlv"/>
+          "MULTI_NEXT_HOP TLV"</t>
+
+          <figure>
+            <artwork>
+   Under "Border Gateway Protocol (BGP) Parameters",
+
+     Registry Group: BGP MultiNextHop Attribute
+
+     Registry Name: MultiNexthop (MNH) TLV Types
+
+          MNH Type Code        Meaning
+         --------------     -------------
+           0                Reserved
+           1                Primary forwarding path
+           2                Backup forwarding path
+           3-254            Unassigned
+           255              Reserved
+
+     Reference: This document.
+
+     Registration Procedure(s)
+         Future assignments are to be made using either the Standards Action
+         process defined in [RFC2434], or the Early IANA Allocation process
+         defined in [RFC4020].
+
+           </artwork>
+          </figure>
+        </section>
+
+        <section title="Forwarding Action Types">
+          <t>This is a Registry for Type codes in <xref target="fi-tlv"/>
+          "Forwarding Instruction TLV"</t>
+
+          <figure>
+            <artwork>
+    Under "Border Gateway Protocol (BGP) Parameters",
+
+      Registry Group: BGP MultiNextHop Attribute
+
+      Registry Name: Forwarding Action Types
+
+            FwdAction         Meaning
+            ---------      -------------
+             0             Reserved
+             1             Forward
+             2             Pop-And-Forward
+             3             Swap
+             4             Push
+             5             Pop-And-Lookup
+             6             Replicate
+             7-254         Unassigned
+             255           Reserved
+
+       Reference: This document.
+
+       Registration Procedure(s)
+           Future assignments are to be made using either the Standards Action
+           process defined in [RFC2434], or the Early IANA Allocation process
+           defined in [RFC4020].
+           </artwork>
+          </figure>
+        </section>
+
+        <section title="Forwarding Argument Types">
+          <t>This is a Registry for Type codes in <xref target="fa-tlv"/>
+          "Forwarding Arguments TLV"</t>
+
+          <figure>
+            <artwork>
+
+    Under "Border Gateway Protocol (BGP) Parameters",
+
+      Registry Group: BGP MultiNextHop Attribute
+
+      Registry Name: Forwarding Argument Types
+
+         F.A. Type Code      Meaning
+         ---------------   ------------------
+            0              Reserved
+            1              Endpoint Identifier
+            2              Path Constraints
+            3              Payload encapsulation info signaling
+            4              Endpoint attributes advertisement
+            5-65534        Unassigned
+            65535          Reserved
+
+      Reference: This document.
+
+      Registration Procedure(s)
+          Future assignments are to be made using either the Standards Action
+          process defined in [RFC2434], or the Early IANA Allocation process
+          defined in [RFC4020].
+
+           </artwork>
+          </figure>
+        </section>
+
+        <section title="Endpoint Types">
+          <t>This is a Registry for Type codes in <xref target="ep-tlv"/>
+          "Endpoint Identifier" Forwarding Argument.</t>
+
+          <figure>
+            <artwork>
+    Under "Border Gateway Protocol (BGP) Parameters",
+
+      Registry Group: BGP MultiNextHop Attribute
+
+      Registry Name: Endpoint Types
+
+          Endpoint Type   Value
+         -------------  ---------
+            0           Reserved
+            1           IPv4 Address
+            2           IPv6 Address
+            3           MPLS Label
+            4           Fwd Context RD
+            5           Fwd Context RT
+            6-254       Unassigned
+            255         Reserved
+
+      Reference: This document.
+
+      Registration Procedure(s)
+          Future assignments are to be made using either the Standards Action
+          process defined in [RFC2434], or the Early IANA Allocation process
+          defined in [RFC4020].
+
+           </artwork>
+          </figure>
+        </section>
+
+        <section title="Path Constrain Types">
+          <t>This is a Registry for Type codes in <xref
+          target="constrain-tlv"/> "Path Constrain" Forwarding Argument.</t>
+
+          <figure>
+            <artwork>
+    Under "Border Gateway Protocol (BGP) Parameters",
+
+      Registry Group: BGP MultiNextHop Attribute
+
+      Registry Name: Path Constrain Types
+
+         ConstrainType             Value
+         -------------  -------------------------
+           0             Reserved
+           1             Proximity check
+           2             Transport Class ID (Color)
+           3             Load balance factor
+           4-254         Unassigned
+           255           Reserved
+
+      Reference: This document.
+
+      Registration Procedure(s)
+           Future assignments are to be made using either the Standards Action
+           process defined in [RFC2434], or the Early IANA Allocation process
+           defined in [RFC4020].
+
+           </artwork>
+          </figure>
+        </section>
+
+        <section title="Encapsulation Types">
+          <t>This is a Registry for Type codes in <xref target="encap-tlv"/>
+          "Payload Encapsulation Info" Forwarding Argument.</t>
+
+          <figure>
+            <artwork>
+      Under "Border Gateway Protocol (BGP) Parameters",
+
+        Registry Group: BGP MultiNextHop Attribute
+
+        Registry Name: Encapsulation Types
+
+            Encap Type        Value
+          -------------  --------------
+            0           Reserved
+            1           MPLS Label Info
+            2           SR MPLS label Index Info
+            3           SRv6 SID info
+            4           DSCP code point
+            5-254       Unassigned
+            255         Reserved
+
+        Reference: This document.
+
+        Registration Procedure(s)
+            Future assignments are to be made using either the Standards Action
+            process defined in [RFC2434], or the Early IANA Allocation process
+            defined in [RFC4020].
+
+           </artwork>
+          </figure>
+        </section>
+
+        <section title="Endpoint Attribute Types">
+          <t>This is a Registry for Type codes in <xref target="epattr-tlv"/>
+          "Endpoint attributes" Forwarding Argument.</t>
+
+          <figure>
+            <artwork>
+    Under "Border Gateway Protocol (BGP) Parameters",
+
+      Registry Group: BGP MultiNextHop Attribute
+
+      Registry Name:  Endpoint Attribute Types
+
+         EP Attrib Type      Attrib Value
+         ----------------  ------------------
+           0               Reserved
+           1               Bandwidth
+           2-254           Unassigned
+           255             Reserved
+
+       Reference: This document.
+
+       Registration Procedure(s)
+           Future assignments are to be made using either the Standards Action
+           process defined in [RFC2434], or the Early IANA Allocation process
+           defined in [RFC4020].
+
+           </artwork>
+          </figure>
+
+          <t>Note to RFC Editor: this section may be removed on publication as
+          an RFC.</t>
+        </section>
+      </section>
+    </section>
+
+    <section anchor="Security" title="Security Considerations">
+      <t>The MNH attribute is defined as optional non-transitive BGP
+      attribute, such that it does not accidentally get propagated or leaked
+      via BGP speakers that dont support this feature, especially does not
+      unintentionally leak across EBGP boundaries.</t>
+
+      <t>MNH may be used to advertise nexthop with MPLS label in various BGP
+      families. In scenarios where MPLS is enabled on link to a device in an
+      untrusted domain, e.g. a PE-CE link or ASBR-ASBR inter-AS link, security
+      can be provided against MPLS label spoofing by using MPLS context tables
+      as described in <xref target="MplsCE">MPLS enabled CE</xref>. Such that
+      only MPLS traffic with labels advertised to the BGP speaker are allowed
+      to forward. However, the PE may not be able to perform any checks based
+      on inner payload in the MPLS packet since it performs label swap
+      forwarding. Such 'inner payload' based checks may be offloaded to a
+      downstream node that forwards and processes inner payload, e.g., an IP
+      router having full FIB. These security aspects should be considered when
+      using MPLS enabled CE devices.</t>
+    </section>
+
+    <section anchor=" Contributors" numbered="false" title=" Contributors">
+      <author fullname="Reshma Das" initials="D." surname="Das">
+        <organization>Juniper Networks, Inc.</organization>
+
+        <address>
+          <postal>
+            <street>1133 Innovation Way,</street>
+
+            <city>Sunnyvale</city>
+
+            <region>CA</region>
+
+            <code>94089</code>
+
+            <country>US</country>
+          </postal>
+
+          <email>dreshma@juniper.net</email>
+        </address>
+      </author>
+
+      <author fullname="Natrajan Venkataraman" initials="N."
+              surname="Venkataraman">
+        <organization>Juniper Networks, Inc.</organization>
+
+        <address>
+          <postal>
+            <street>1133 Innovation Way,</street>
+
+            <city>Sunnyvale</city>
+
+            <region>CA</region>
+
+            <code>94089</code>
+
+            <country>US</country>
+          </postal>
+
+          <email>natv@juniper.net</email>
+        </address>
+      </author>
+    </section>
+
+    <section anchor="Acknowledgements" numbered="false"
+             title="Acknowledgements">
+      <t>Thanks to Jeff Haas, Robert Raszuk, Ron Bonica for the review,
+      discussions and input to the draft.</t>
+
+      <t>Thanks to Blaine Williams and Satya Mohanty for the discussions on
+      some usecases.</t>
+    </section>
+  </middle>
+
+  <back>
+    <references title="Normative References">
+      <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7606.xml"?>
+
+      <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.8277.xml"?>
+
+      <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.2545.xml"?>
+
+      <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7311.xml"?>
+
+      <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.4271.xml"?>
+
+      <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7911.xml"?>
+    </references>
+
+    <references title="Informative References  ">
+      <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.2474.xml"?>
+
+      <?rfc include="https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"?>
+
+      <reference anchor="MPLS-NAMESPACES"
+                 target="https://datatracker.ietf.org/doc/html/draft-kaliraj-bess-bgp-sig-private-mpls-labels-06">
+        <front>
+          <title abbrev="MPLS-NAMESPACES">BGP Signaled MPLS Namespaces</title>
+
+          <author fullname="Kaliraj" initials="" role="editor"
+                  surname="Vairavakkalai"/>
+
+          <date day="10" month="07" year="2023"/>
+        </front>
+      </reference>
+
+      <reference anchor="BGP-CT"
+                 target="https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-ct-28">
+        <front>
+          <title abbrev="BGP-CT">BGP Classful Transport Planes</title>
+
+          <author fullname="Kaliraj" initials="" role="editor"
+                  surname="Vairavakkalai"/>
+
+          <author fullname="Natarajan" initials="" role="editor"
+                  surname="Venkataraman"/>
+
+          <date day="17" month="03" year="2023"/>
+        </front>
+      </reference>
+
+      <reference anchor="FLWSPC-REDIR-IP"
+                 target="https://datatracker.ietf.org/doc/html/draft-ietf-idr-flowspec-redirect-ip#section-3">
+        <front>
+          <title abbrev="FLWSPC-REDIR-IP">BGP Flow-Spec Redirect to IP
+          Action</title>
+
+          <author fullname="Adam" initials="" role="editor" surname="Simpson"/>
+
+          <date day="2" month="2" year="2015"/>
+        </front>
+      </reference>
+
+      <reference anchor="SRTE-COLOR-ONLY"
+                 target="https://tools.ietf.org/html/draft-filsfils-spring-segment-routing-policy-06#section-8.8.1">
+        <front>
+          <title abbrev="SRTE-COLOR-ONLY">BGP Flow-Spec Redirect to IP
+          Action</title>
+
+          <author fullname="Clarence" initials="" role="editor"
+                  surname="Filsfils"/>
+
+          <date day="21" month="2" year="2018"/>
+        </front>
+      </reference>
+
+      <reference anchor="ADDPATH-GUIDELINES"
+                 target="https://datatracker.ietf.org/doc/html/draft-ietf-idr-add-paths-guidelines-08#section-2">
+        <front>
+          <title abbrev="ADDPATH-GUIDELINES">BGP Flow-Spec Redirect to IP
+          Action</title>
+
+          <author fullname="Jim" initials="" role="editor" surname="Uttaro"/>
+
+          <date day="25" month="4" year="2016"/>
+        </front>
+      </reference>
+    </references>
+
+    <section anchor="AppendixA" title="Example of Usecases">
+      <t>This section describes various example usecases of the MNH
+      attribute.</t>
+
+      <section numbered="true" title="Signaling WECMP to Ingress Node">
+        <t>This section describes how MNH can be used to provide weighted
+        equal cost multipath in a network fabric, while not increasing RIB
+        scale.</t>
+
+        <figure anchor="topo-wecmp" suppress-title="false"
+                title="WECMP without increasing RIB scale">
+          <artwork align="left" xml:space="preserve">
+                                   [RR1]
+                                     .
+                   . +-[P21]         |
+                  .  +-[P22]         __
+                 .   +-[P23]      _.(  )..
+            [R1].    +-[P24] ..  (_      _) .. [R2]
+                 .   +-[P25]       (._..)
+                  .
+                   . +-[P2n]
+
+
+                    &lt;---- Traffic Direction ----
+
+</artwork>
+        </figure>
+
+        <t><xref target="topo-wecmp"/> shows a network with BGP speaker R1
+        connected to a number of routers P21 .. P2n in its region. R1 is eSN
+        and R2 is iSN for the IP traffic in consideration. BGP service
+        families IPv4 Unicast (AFI/SAFI: 1/1) and IPv6 Unicast (AFI/SAFI: 2/1)
+        are negotiated on the BGP sessions between RR1 - R1 and RR1 - R2. RR1
+        reflects the BGP routes between R1 and R2 with next hop unchanged.</t>
+
+        <t>When MNH is not in use, R1 advertises "n" BGP Addpath routes for a
+        service prefix Pfx1, each having a distinct next hop, P21 .. P2n, and
+        desired Link Bandwidth Extended Community. These Addpath routes will
+        be received by R2, which can do WECMP based on the Link Bandwidth
+        Extended Communities attached on the routes. This model increases RIB
+        scale by "n" times, so that WECMP can be achieved.</t>
+
+        <t>When MNH is used in this network, R1 advertises a single BGP route
+        for prefix Pfx1, which contains a MNH attribute with "n" next hops,
+        each carrying the desired link bandwidth using <xref
+        target="lb-perc"/> or <xref target="ep-bw"/></t>
+
+        <t>This allows achieving WECMP in the network without increasing RIB
+        scale.</t>
+      </section>
+
+      <section title="Signaling Optimal Forwarding Exitpoints to Ingress Node">
+        <t>In a BGP free core, one can dynamically signal to the ingress-node,
+        how traffic should be load-balanced towards a set of exit nodes, in
+        one BGP-route containing this attribute.</t>
+
+        <t>Example, for prefix1, perform equal load balancing towards exit
+        nodes A, B; where as for prefix2, perform weighted load balancing
+        (40%, 30%, 30%) towards exit nodes A, B, C.</t>
+
+        <t>Example, for prefix1, use PE1 as primary-nexthop and use PE2 as a
+        backup-nexthop.</t>
+      </section>
+
+      <section numbered="true" title="Load balancing to multiple CEs in a VRF">
+        <t>This section describes how MNH can be used to provide load
+        balancing and entropy in a provider network for traffic destined to
+        multiple CEs in a VRF, without increasing RIB scale.</t>
+
+        <figure anchor="topo-cevrf" suppress-title="false"
+                title="Load balancing to multiple CEs in a VRF">
+          <artwork align="left" xml:space="preserve">
+                                   [RR1]
+                                     .
+            [CE1].                   |
+                  .                  __
+            [CE2]  .              _.(  )..
+                    .[PE1]   ..  (_      _) .. [PE2]
+            [CE3]  .               (._..)
+                  .
+            [CE4].
+
+
+                    &lt;---- Traffic Direction ----
+
+</artwork>
+        </figure>
+
+        <t><xref target="topo-cevrf"/> shows a L3VPN network with multiple CE
+        devices connected to the same VRF at PE1. The VRF is configured with a
+        RD: RD1, and uses "per next hop" label allocation mode to advertise
+        the CE routes to L3VPN core. PE1 is eSN and PE2 is iSN for the IP
+        traffic in consideration. CE1..CE4 advertise route for same prefix
+        Pfx1 in BGP service families IPv4 Unicast (AFI/SAFI: 1/1) negotiated
+        on the BGP sessions between the CEs and PE1. BGP L3VPN address family
+        (AFI/SAFI: 1/128) is negotiated between PE1 - RR1, and RR1 - PE2. RR1
+        reflects the BGP routes between PE1 and PE2 with next hop
+        unchanged.</t>
+
+        <t>PE1 would typically advertise to RR1 only the best path for prefix
+        Pfx1 out of routes received from CE1..CE4. Using per CE RD or Addpath
+        for L3VPN family may allow PE1 to advertise all CE routes to the RR,
+        with an increase in RIB scale. This model increases RIB scale by "n"
+        times, where 'n' is the number of CEs.</t>
+
+        <t>When MNH is used in this network, PE1 advertises a single BGP L3VPN
+        route for prefix Pfx1, which contains a MNH attribute with "n" next
+        hops, each carrying the label pointing towards a particular CE, using
+        <xref target="encap-tlv"/> along with the <xref target="ep-tlv"/></t>
+
+        <t>This allows the network to direct traffic to a specific CE, and
+        better loadbalance traffic in the provider network, with entropy
+        provided by the per CE VPN labels, without increasing RIB scale.</t>
+      </section>
+
+      <section title="Signaling Desired Forwarding Behavior for MPLS Upstream labels at Receiving Node">
+        <t>In Upstream label allocation case, the receiving speaker's
+        forwarding-state can be controlled by the advertising speaker, thus
+        enabling a standardized API to program desired MPLS forwarding-state
+        at the receiving node. This is described in the <xref
+        target="MPLS-NAMESPACES"/></t>
+      </section>
+
+      <section title="Load Balancing over EBGP Parallel Links">
+        <t>Consider N parallel links between two EBGP speakers. There are
+        different models possible to do load balancing over these links:<list>
+            <t>N single-hop EBGP sessions over the N links. Interface
+            addresses are used as next-hops. N copies of the RIB are exchanged
+            to form N-way ECMP paths. The routes advertised on the N sessions
+            can be attached with Link bandwidth comunity to perform weighted
+            ECMP.</t>
+
+            <t>1 multi-hop EBGP session between loopback addresses, reachable
+            via static route over the N links. Loopback addresses are used as
+            next-hops. 1 copy of the RIB is exchanged with loopback address as
+            nexthop. And a static route can be configured to the loopback
+            address to perform desired N-way ECMP path. M loopbacks are
+            configured in this model, to achieve M different load balancing
+            schemes: ECMP, weighted ECMP, Fast-reroute enabled paths etc.</t>
+
+            <t>1 multi-hop EBGP session between loopback addresses, reachable
+            via static route over the N links. Interface addresses are used as
+            next-hops, without using additional loopbacks. 1 copy of the RIB
+            is exchanged with MNH attribute to form N-way ECMP paths, weighted
+            ECMP, Fast-reroute backup paths etc. BFD may be used to these
+            directly connected BGP nexthops to detect liveness.</t>
+          </list></t>
+      </section>
+
+      <section title="Flowspec Routes with Multiple &quot;Redirect IP&quot; next hops">
+        <t>There are existing protocol machinery which can benefit from the
+        ability of MNH to clearly specify fallback behavior when multiple
+        nexthops are involved. One example is the scenario described in <xref
+        target="FLWSPC-REDIR-IP"/> where multiple Redirect-to-IP nexthop
+        addresses exist for a Flowspec prefix. In such a scenario, the
+        receiving speakers may redirect the traffic to different nexthops,
+        based on variables like IGP-cost. If instead, the MNH was used to
+        specify the redirect-to-IP nexthop, then the order of preference
+        between the different nexthops can be clearly specified using one
+        flowspec route carrying a MNH containing those different
+        nexthop-addresses specifying the desired preference-order. Such that,
+        irrespective of IGP-cost, the receiving speakers will redirect the
+        flow towards the same traffic collector device.</t>
+      </section>
+
+      <section title="Color-Only Resolution next hop">
+        <t>Another existing protocol machinery that manufactures nexthop
+        addresses from overloaded extended color community is specified in
+        <xref target="SRTE-COLOR-ONLY"/>. In a way, the color field is
+        overloaded to carry one anycast BGP next-hop with pre-specified
+        fallback options. This approach gives us only two next-hops to play
+        with. The 'BGP nexthop address' and the 'Color-only nexthop'</t>
+
+        <t>Instead, the MNH could be used to achieve the same result with more
+        flexibility. Multiple BGP nexthops can be carried, each resolving over
+        a desired Transport class (Color), and with customizable fallback
+        order. And the solution will work for non-SRTE networks as-well.</t>
+      </section>
+
+      <section title="Avoid Label Advertisement Oscillation Between Multihomed PEs.">
+        <t>In a MPLS network, a router may be multihomed to two PEs. The PEs
+        may re-advertise routes received from the router to the IBGP core with
+        self as nexthop and a "per nexthop" label. The PEs may also protect
+        failure of primary path to the router by using the IBGP path via the
+        other multihomed PE as a backup path.</t>
+
+        <t>In this scenario, label allocation oscillation may occur when one
+        PE advertises a new label to the other PE. Reception of a new label
+        results in change of nexthop, as the label is used as back nexthop
+        leg, and per-nexthop label allocation is in use. Thus a new label is
+        allocated and advertised. And when this new label is received by the
+        first PE, it allocates a new label in turn. This process repeats.</t>
+
+        <t>This oscillation can be stopped only if the primary path label
+        allocated by a PE does not depend on the primary path label advertised
+        by other PE. A PE needs to be able to advertise multiple labels, one
+        for use as primary path and another to be used as bacakup path by the
+        receiver.</t>
+
+        <t>MNH attribute allows to advertise a Backup forwarding path label
+        using <xref target="upstr-bkp"/> in addition to Primary forwarding
+        path label using <xref target="upstr-prim"/></t>
+      </section>
+
+      <section title="Signaling Intent over PE-CE Attachment Circuit">
+        <t>BGP CT specifies procedures for Intent Driven Service Mapping in a
+        service provider network, and defines 'Transport Class' construct to
+        represent an Intent.</t>
+
+        <t>It may be desirable to allow a CE device to indicate in the data
+        packet it sends what treatment it desires (the Intent) when the packet
+        is forwarded within the provider network.</t>
+
+        <t>This section describes the mechanisms that enable such signaling.
+        These procedures use existing AFIs 1 or 2, and service families (SAFI
+        1) on the PE-CE attachment circuit, with a new BGP attribute.</t>
+
+        <figure anchor="Intent_PE_CE" suppress-title="false"
+                title="Example Topology with PE-CE Links">
+          <artwork align="left" xml:space="preserve">
+                                    ---Gold-----&gt;
+                      [CE1]-----[PE1]---[P]----[PE2]-----[CE2]
+                                    ---Bronze---&gt;
+                203.0.113.11                             203.0.113.22
+                          ----  Traffic direction ----&gt;
+</artwork>
+        </figure>
+
+        <section title="Using DSCP in MultiNexthop Attribute">
+          <t>Such an indication can be in form of DSCP code point (<xref
+          target="RFC2474"/>) in the IP header.</t>
+
+          <t>In RFC2474, a Forwarding Class Selector maps to a PHB (Per-hop
+          Behavior). The Transport Class construct is a PHB at transport
+          layer.</t>
+
+          <t>Let PE1 be configured to map DSCP1 to Gold Transport class, and
+          DSCP2 to Bronze Transport class. Based on the DSCP code point
+          received on the IP traffic from CE1, PE1 forwards the IP packet over
+          a Gold or Bronze tunnel. Thus, the forwarding is not based on just
+          the destination IP address, but also the DSCP code point. This is
+          known as Class Based Forwarding (CBF). Today CBF is configured at
+          the PE1 device roles and CE1 doesn't receive any indication in BGP
+          signaling regarding what DSCP code points are being offered by the
+          provider network.</t>
+
+          <t>With a BGP MultiNexthop Attribute attached to a AFI/SAFI 1/1
+          service route, it is possible to extend the PE-CE BGP signaling (if
+          used) to communicate such information to the CE1. In the preceding
+          example, the MNH contains two Next hop Legs, described by two
+          Forwarding Instruction TLVs. Each Next hop Leg contains PE1's
+          peering self address in Endpoint Identifier TLV ( <xref
+          target="ep-tlv"/>), the color Gold or Bronze encoded in the
+          Transport class ID TLV (Section 5.4.2.2, <xref
+          target="tc-tlv-fig"/>), and associated DSCP code point indicating
+          Gold or Bronze transport class encoded in the Payload Encapsulation
+          Info TLV (Section 5.4.3.4, <xref target="encap-tlv"/>). This allows
+          the CE to discover what transport classes exist in the provider
+          network, and which DSCP codepoint to encode so that traffic is
+          forwarded using the desired transport class in the provided
+          network.</t>
+        </section>
+
+        <section anchor="MplsCE" title="MPLS-enabled CE">
+          <t>If the PE-CE link is MPLS enabled, a distinct MPLS label can also
+          be used to express Intent in data packets from CE. Enabling MPLS
+          forwarding on PE-CE links comes with some security implications.
+          This section gives details on these aspects.</t>
+
+          <t>Consider the ingress PE1 receiving a VPN prefix RD:Pfx1 received
+          with VPN label VL1, next hop as PE2 and a mapping community
+          containing TC1 as 'Transport class ID'. PE1 can allocate a MPLS
+          Label PVL1 for the tuple "VPN Label, PNH Address, Transport class
+          ID" and advertise to CE1.</t>
+
+          <t>Label PVL1 may identifies a service function at any node in the
+          network, e.g. a Firewall device or egress node PE2. And, for the
+          same service prefix, a distinct label may be advertised to different
+          CEs, such that incoming traffic from different CEs to the same
+          service prefix can be diverted to a distinct devices in the network
+          for further processing. This provides Ingress Peer Engineering
+          control to the network.</t>
+
+          <t>PE1 installs a MPLS FIB route for PVL1 with next hop as "Swap
+          VL1, Push TL1 towards PE2". TL1 is the BGP CT label received for the
+          tuple 'PE2, TC1'. In forwarding, when MPLS packet with label PVL1 is
+          received from CE1, PVL1 Swaps to label VL1 and pushes the BGP CT
+          label TL1. PE1 advertises the label "PVL1" in the MNH to CE1. PE1
+          forwards based on MPLS label without performing any IP lookup. This
+          allows for PE1 to be a low IP FIB device and still support CBF by
+          using MPLS Label inferred PHB. The number of MPLS Labels consumed at
+          PE1 for this approach will be proportional to the number of Service
+          functions and Intents that are exposed to CE1.</t>
+
+          <t>A BGP MultiNexthop Attribute is attached to a AFI/SAFI 1/1
+          service route to convey the MPLS Label information to CE1. In the
+          preceding example, the MNH contains two Next hop Legs, described by
+          two Forwarding Instruction TLVs. Each Next hop Leg contains PE1's
+          peering self address in Endpoint Identifier TLV ( <xref
+          target="ep-tlv"/>), the color Gold or Bronze encoded in the
+          Transport class ID TLV (<xref target="tc-tlv-fig"/>), and associated
+          MPLS Label "PVL1" or "PVL2" encoded in the Payload Encapsulation
+          Info TLV (Section 5.4.3.1, <xref target="encap-tlv"/>). This allows
+          the CE to discover what transport classes exist in the provider
+          network, and which MPLS Label to encode so that traffic is forwarded
+          using the desired transport class.</t>
+
+          <section title="Secure MPLS Forwarding on Inter-AS Link">
+            <t>The MPLS enabled PE-CE attachment circuit is considered
+            connecting to an untrusted domain. Such interfaces can be secured
+            against MPLS label spoofing by a walled garden approach using
+            "MPLS context tables".</t>
+
+            <t>The PE1-CE1 interface can be confined to a specific MPLS
+            context table "A" corresponding to the BGP peer. Such that only
+            the routes for labels advertised to CE1 are installed in MPLS
+            context table "A".</t>
+
+            <t>This ensures that if CE1 sends MPLS packet with a label that
+            was not advertised to the CE1, the packet will be dropped.</t>
+
+            <t>Furthermore, the routes for labels PVL1, PVL2 installed in MPLS
+            context table "A" can match on 'Bottom of stack' bit being 'one',
+            ensuring a MPLS packet is accepted from CE1 only if it has no more
+            than one label in the label stack.</t>
+
+            <t>However, the PE itself may not be able to perform any checks
+            based on inner payload in the MPLS packet since it performs label
+            swap forwarding. Such inner payload based checks may be offloaded
+            to a downstream node that forwards and processes inner payload,
+            e.g. a IP FIB router. These security aspects should be considered
+            when using MPLS enabled CE devices.</t>
+          </section>
+        </section>
+      </section>
+
+      <section numbered="true"
+               title="4PE - Signal MPLS Label for IPv4 Unicast routes">
+        <t>This section describes how MNH can be used to signal MPLS explicit
+        null label in AFI/SAFI: 1/1 routes in a pure IPv6 core environment, to
+        achieve 4PE.</t>
+
+        <figure anchor="topo-4pe" suppress-title="false"
+                title="4PE Network with Pure IPv6 Core">
+          <artwork align="left" xml:space="preserve">
+                                   [RR1]
+                                     .
+                                     |
+                                     __
+                                  _.(  )..
+       [CE1] - [PE1]-[P1]    ..  (_  v6  _) .. [PE2] - [CE2]
+                                   (._..)
+
+
+                    &lt;---- Traffic Direction ----
+              P1: PHP node.
+              PE1: Egress PE.
+
+</artwork>
+        </figure>
+
+        <t><xref target="topo-4pe"/> shows a 4PE network with pure IPv6 core,
+        PE1 is the egress PE connected to penultimate hop node P1. PE1 to PE2
+        have some IPv6 core tunneling protocol like LDPv6. When PE1 has
+        advertised Implicit Null label in LDPv6, some implementations of P1
+        may not be able to forward the inner IPv4 payload to PE1.</t>
+
+        <t>To solve this problem, PE1 needs to signal IPv4 Explicit NULL Label
+        (Special Label 0) to PE2. PE2 will push this IPv4 Explicit NULL Label
+        received in the MNH on the AFI/SAFI:1/1 route. Such that P1 does a
+        MPLS Label swap operation and does not need to look into inner
+        payload.</t>
+
+        <t>MNH can be used by PE1 on a AFI/SAFI: 1/1 route, to advertise the
+        IPv4 Explicit Null label for the IPv4 Unicast service route. MPLS
+        Label is encoded in the Payload Encapsulation Info TLV (Section
+        5.4.3.1, <xref target="encap-tlv"/>).</t>
+
+        <t>This allows the network to provide clear separation of service and
+        transport routes, and not overloading AFI/SAFI: 1/4 to carry the IPv4
+        service routes. Not mixing service and transport routes improves
+        security and manageability aspects of the network.</t>
+
+        <t>An egress PE may not need to advertise IPv4 Explicit Null label for
+        the IPv4 service route, if it does UHP label in LDPv6. This model
+        using MNH provides a homogenous service layer (AFI/SAFI: 1/1) that
+        accomodates differences in requirement of different PE and P routers.
+        Only the PEs which are connected to P nodes that cannot handle the PHP
+        situation need to advertise Label using MNH. The service layer is kept
+        consistent in the network, and can seamlessly extend to multiple
+        domains without needing redistribution between AFI/SAFIs.</t>
+
+        <t>Not mixing service and transport routes improves security and
+        manageability aspects of the network.</t>
+      </section>
+    </section>
+  </back>
+</rfc>

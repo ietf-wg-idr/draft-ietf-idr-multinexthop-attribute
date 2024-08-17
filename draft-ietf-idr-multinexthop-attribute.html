@@ -1,0 +1,4099 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>BGP MultiNexthop Attribute</title>
+<meta content="Kaliraj Vairavakkalai" name="author">
+<meta content="Minto Jeyananth" name="author">
+<meta content="Mohan Nanduri" name="author">
+<meta content="Avinash Reddy" name="author">
+<meta content='
+       Today, a BGP speaker can advertise one nexthop for a set of NLRIs in
+      an Update message. This nexthop can be encoded in either the top-level
+      BGP-Nexthop attribute (code 3), or inside the MP_REACH_NLRI attribute
+      (code 14). Forwarding information related to the nexthop is scattered
+      across various attributes, extended communities or the NLRI field. 
+       This document defines a new optional non-transitive BGP attribute
+      called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD, that
+      can be used to carry an ordered set of one or more Nexthops in the same
+      Update message, with all forwarding information being carried in one
+      attribute, scoped on a per nexthop basis. 
+    ' name="description">
+<meta content="xml2rfc 3.18.2" name="generator">
+<meta content="draft-ietf-idr-multinexthop-attribute-01" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.18.2
+    Python 3.9.6
+    ConfigArgParse 1.7
+    google-i18n-address 3.1.0
+    intervaltree 3.1.0
+    Jinja2 3.1.2
+    lxml 4.9.3
+    platformdirs 3.11.0
+    pycountry 22.3.5
+    PyYAML 6.0.1
+    requests 2.31.0
+    setuptools 58.0.4
+    six 1.15.0
+    wcwidth 0.2.9
+-->
+<link href="draft-ietf-idr-multinexthop-attribute.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">/*
+
+  NOTE: Changes at the bottom of this file overrides some earlier settings.
+
+  Once the style has stabilized and has been adopted as an official RFC style,
+  this can be consolidated so that style settings occur only in one place, but
+  for now the contents of this file consists first of the initial CSS work as
+  provided to the RFC Formatter (xml2rfc) work, followed by itemized and
+  commented changes found necessary during the development of the v3
+  formatters.
+
+*/
+
+/* fonts */
+@import url('https://fonts.googleapis.com/css?family=Noto+Sans'); /* Sans-serif */
+@import url('https://fonts.googleapis.com/css?family=Noto+Serif'); /* Serif (print) */
+@import url('https://fonts.googleapis.com/css?family=Roboto+Mono'); /* Monospace */
+
+:root {
+  --font-sans: 'Noto Sans', Arial, Helvetica, sans-serif;
+  --font-serif: 'Noto Serif', 'Times', 'Times New Roman', serif;
+  --font-mono: 'Roboto Mono', Courier, 'Courier New', monospace;
+}
+
+@viewport {
+  zoom: 1.0;
+}
+@-ms-viewport {
+  width: extend-to-zoom;
+  zoom: 1.0;
+}
+/* general and mobile first */
+html {
+}
+body {
+  max-width: 90%;
+  margin: 1.5em auto;
+  color: #222;
+  background-color: #fff;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  scroll-behavior: smooth;
+  overflow-wrap: break-word;
+}
+.ears {
+  display: none;
+}
+
+/* headings */
+#title, h1, h2, h3, h4, h5, h6 {
+  margin: 1em 0 0.5em;
+  font-weight: bold;
+  line-height: 1.3;
+}
+#title {
+  clear: both;
+  border-bottom: 1px solid #ddd;
+  margin: 0 0 0.5em 0;
+  padding: 1em 0 0.5em;
+}
+.author {
+  padding-bottom: 4px;
+}
+h1 {
+  font-size: 26px;
+  margin: 1em 0;
+}
+h2 {
+  font-size: 22px;
+  margin-top: -20px;  /* provide offset for in-page anchors */
+  padding-top: 33px;
+}
+h3 {
+  font-size: 18px;
+  margin-top: -36px;  /* provide offset for in-page anchors */
+  padding-top: 42px;
+}
+h4 {
+  font-size: 16px;
+  margin-top: -36px;  /* provide offset for in-page anchors */
+  padding-top: 42px;
+}
+h5, h6 {
+  font-size: 14px;
+}
+#n-copyright-notice {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 1em;
+  margin-bottom: 1em;
+}
+/* general structure */
+p {
+  padding: 0;
+  margin: 0 0 1em 0;
+  text-align: left;
+}
+div, span {
+  position: relative;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  padding: 1em 1em 0;
+  margin-bottom: 1.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+svg[font-family~="serif" i], svg [font-family~="serif" i] {
+  font-family: var(--font-serif);
+}
+svg[font-family~="sans-serif" i], svg [font-family~="sans-serif" i] {
+  font-family: var(--font-sans);
+}
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  padding: 1em 1em 0;
+  margin-bottom: 1.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  display: table;
+  border: none;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 1em 2em;
+}
+ol ol, ul ul, ol ul, ul ol {
+  margin-left: 1em;
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+.ulCompact li {
+  margin: 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+}
+ul.empty li, .ulEmpty li {
+  margin-top: 0.5em;
+}
+ul.ulBare, li.ulBare {
+  margin-left: 0em !important;
+}
+ul.compact, .ulCompact,
+ol.compact, .olCompact {
+  line-height: 100%;
+  margin: 0 0 0 2em;
+}
+
+/* definition lists */
+dl {
+}
+dl > dt {
+  float: left;
+  margin-right: 1em;
+}
+/* 
+dl.nohang > dt {
+  float: none;
+}
+*/
+dl > dd {
+  margin-bottom: .8em;
+  min-height: 1.3em;
+}
+dl.compact > dd, .dlCompact > dd {
+  margin-bottom: 0em;
+}
+dl > dd > dl {
+  margin-top: 0.5em;
+  margin-bottom: 0em;
+}
+
+/* links */
+a {
+  text-decoration: none;
+}
+a[href] {
+  color: #22e; /* Arlen: WCAG 2019 */
+}
+a[href]:hover {
+  background-color: #f2f2f2;
+}
+figcaption a[href],
+a[href].selfRef,
+.iref + a[href].internal {
+  color: #222;
+}
+/* XXX probably not this:
+a.selfRef:hover {
+  background-color: transparent;
+  cursor: default;
+} */
+
+/* Figures */
+tt, code, pre {
+  background-color: #f9f9f9;
+  font-family: var(--font-mono);
+}
+pre {
+  border: 1px solid #eee;
+  margin: 0;
+  padding: 1em;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption {
+  font-style: italic;
+  margin: 0 0 1em 0;
+}
+@media screen {
+  pre {
+    overflow-x: auto;
+    max-width: 100%;
+    max-width: calc(100% - 22px);
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 1.2em 2em;
+}
+blockquote {
+  background-color: #f9f9f9;
+  color: #111; /* Arlen: WCAG 2019 */
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  margin: 1em 0;
+}
+blockquote > *:last-child {
+  margin-bottom: 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  border: 1px solid #eee;
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5em 0.75em;
+}
+th {
+  text-align: left;
+  background-color: #e9e9e9;
+}
+tr:nth-child(2n+1) > td {
+  background-color: #f5f5f5;
+}
+table caption {
+  font-style: italic;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+table p {
+  /* XXX to avoid bottom margin on table row signifiers. If paragraphs should
+     be allowed within tables more generally, it would be far better to select on a class. */
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  color: #666; /* Arlen: AHDJ 2019 */
+  text-decoration: none;
+  visibility: hidden;
+  user-select: none;
+  -ms-user-select: none;
+  -o-user-select:none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+@media screen {
+  aside:hover > a.pilcrow,
+  p:hover > a.pilcrow,
+  blockquote:hover > a.pilcrow,
+  div:hover > a.pilcrow,
+  li:hover > a.pilcrow,
+  pre:hover > a.pilcrow {
+    visibility: visible;
+  }
+  a.pilcrow:hover {
+    background-color: transparent;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid #eee;
+}
+.bcp14 {
+  font-variant: small-caps;
+}
+
+.role {
+  font-variant: all-small-caps;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: 0.9em;
+}
+#identifiers dt {
+  width: 3em;
+  clear: left;
+}
+#identifiers dd {
+  float: left;
+  margin-bottom: 0;
+}
+/* Fix PDF info block run off issue */
+@media print {
+  #identifiers dd {
+    float: none;
+  }
+}
+#identifiers .authors .author {
+  display: inline-block;
+  margin-right: 1.5em;
+}
+#identifiers .authors .org {
+  font-style: italic;
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #666; /* Arlen: WCAG 2019 */
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: left;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc  {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+}
+nav.toc ul {
+  margin: 0 0.5em 0 0;
+  padding: 0;
+  list-style: none;
+}
+nav.toc li {
+  line-height: 1.3em;
+  margin: 0.75em 0;
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+}
+/* references */
+.references dt {
+  text-align: right;
+  font-weight: bold;
+  min-width: 7em;
+}
+.references dd {
+  margin-left: 8em;
+  overflow: auto;
+}
+
+.refInstance {
+  margin-bottom: 1.25em;
+}
+
+.references .ascii {
+  margin-bottom: 0.25em;
+}
+
+/* index */
+.index ul {
+  margin: 0 0 0 1em;
+  padding: 0;
+  list-style: none;
+}
+.index ul ul {
+  margin: 0;
+}
+.index li {
+  margin: 0;
+  text-indent: -2em;
+  padding-left: 2em;
+  padding-bottom: 5px;
+}
+.indexIndex {
+  margin: 0.5em 0 1em;
+}
+.index a {
+  font-weight: 700;
+}
+/* make the index two-column on all but the smallest screens */
+@media (min-width: 600px) {
+  .index ul {
+    -moz-column-count: 2;
+    -moz-column-gap: 20px;
+  }
+  .index ul ul {
+    -moz-column-count: 1;
+    -moz-column-gap: 0;
+  }
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  margin: 1em 0;
+}
+
+address.vcard .nameRole {
+  font-weight: 700;
+  margin-left: 0;
+}
+address.vcard .label {
+  font-family: var(--font-sans);
+  margin: 0.5em 0;
+}
+address.vcard .type {
+  display: none;
+}
+.alternative-contact {
+  margin: 1.5em 0 1em;
+}
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+
+/* temporary notes */
+.rfcEditorRemove::before {
+  position: absolute;
+  top: 0.2em;
+  right: 0.2em;
+  padding: 0.2em;
+  content: "The RFC Editor will remove this note";
+  color: #9e2a00; /* Arlen: WCAG 2019 */
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+}
+.rfcEditorRemove {
+  position: relative;
+  padding-top: 1.8em;
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+  border-radius: 3px;
+}
+.cref {
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+/* alternative layout for smaller screens */
+@media screen and (max-width: 1023px) {
+  body {
+    padding-top: 2em;
+  }
+  #title {
+    padding: 1em 0;
+  }
+  h1 {
+    font-size: 24px;
+  }
+  h2 {
+    font-size: 20px;
+    margin-top: -18px;  /* provide offset for in-page anchors */
+    padding-top: 38px;
+  }
+  #identifiers dd {
+    max-width: 60%;
+  }
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    background-color: inherit;
+    border-bottom: 1px solid #ccc;
+  }
+  #toc h2 {
+    margin: -1px 0 0 0;
+    padding: 4px 0 4px 6px;
+    padding-right: 1em;
+    min-width: 190px;
+    font-size: 1.1em;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+  }
+  #toc h2::before { /* css hamburger */
+    float: right;
+    position: relative;
+    width: 1em;
+    height: 1px;
+    left: -164px;
+    margin: 6px 0 0 0;
+    background: white none repeat scroll 0 0;
+    box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+    content: "";
+  }
+  #toc nav {
+    display: none;
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+}
+
+/* alternative layout for wide screens */
+@media screen and (min-width: 1024px) {
+  body {
+    max-width: 724px;
+    margin: 42px auto;
+    padding-left: 1.5em;
+    padding-right: 29em;
+  }
+  #toc {
+    position: fixed;
+    top: 42px;
+    right: 42px;
+    width: 25%;
+    margin: 0;
+    padding: 0 1em;
+    z-index: 1;
+  }
+  #toc h2 {
+    border-top: none;
+    border-bottom: 1px solid #ddd;
+    font-size: 1em;
+    font-weight: normal;
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 0;
+    overflow: auto;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre {
+    page-break-inside: avoid;
+  }
+  figure {
+    overflow: scroll;
+  }
+  .breakable pre {
+    break-inside: auto;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  h2+*, h3+*, h4+*, h5+*, h6+* {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+/* This is commented out here, as the string-set: doesn't
+   pass W3C validation currently */
+/*
+.ears thead .left {
+  string-set: ears-top-left content();
+}
+
+.ears thead .center {
+  string-set: ears-top-center content();
+}
+
+.ears thead .right {
+  string-set: ears-top-right content();
+}
+
+.ears tfoot .left {
+  string-set: ears-bottom-left content();
+}
+
+.ears tfoot .center {
+  string-set: ears-bottom-center content();
+}
+
+.ears tfoot .right {
+  string-set: ears-bottom-right content();
+}
+*/
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+  /* The following is commented out here, but set appropriately by in code, as
+     the content depends on the document */
+  /*
+  @top-left {
+    content: 'Internet-Draft';
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-left {
+    content: string(ears-top-left);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-center {
+    content: string(ears-top-center);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-right {
+    content: string(ears-top-right);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @bottom-left {
+    content: string(ears-bottom-left);
+    vertical-align: top;
+    border-top: solid 1px #ccc;
+  }
+  @bottom-center {
+    content: string(ears-bottom-center);
+    vertical-align: top;
+    border-top: solid 1px #ccc;
+  }
+  @bottom-right {
+      content: '[Page ' counter(page) ']';
+      vertical-align: top;
+      border-top: solid 1px #ccc;
+  }
+  */
+
+}
+
+/* Changes introduced to fix issues found during implementation */
+/* Make sure links are clickable even if overlapped by following H* */
+a {
+  z-index: 2;
+}
+/* Separate body from document info even without intervening H1 */
+section {
+  clear: both;
+}
+
+
+/* Top align author divs, to avoid names without organization dropping level with org names */
+.author {
+  vertical-align: top;
+}
+
+/* Leave room in document info to show Internet-Draft on one line */
+#identifiers dt {
+  width: 8em;
+}
+
+/* Don't waste quite as much whitespace between label and value in doc info */
+#identifiers dd {
+  margin-left: 1em;
+}
+
+/* Give floating toc a background color (needed when it's a div inside section */
+#toc {
+  background-color: white;
+}
+
+/* Make the collapsed ToC header render white on gray also when it's a link */
+@media screen and (max-width: 1023px) {
+  #toc h2 a,
+  #toc h2 a:link,
+  #toc h2 a:focus,
+  #toc h2 a:hover,
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+}
+
+/* Give the bottom of the ToC some whitespace */
+@media screen and (min-width: 1024px) {
+  #toc {
+    padding: 0 0 1em 1em;
+  }
+}
+
+/* Style section numbers with more space between number and title */
+.section-number {
+  padding-right: 0.5em;
+}
+
+/* prevent monospace from becoming overly large */
+tt, code, pre {
+  font-size: 95%;
+}
+
+/* Fix the height/width aspect for ascii art*/
+.sourcecode pre,
+.art-text pre {
+  line-height: 1.12;
+}
+
+
+/* Add styling for a link in the ToC that points to the top of the document */
+a.toplink {
+  float: right;
+  margin-right: 0.5em;
+}
+
+/* Fix the dl styling to match the RFC 7992 attributes */
+dl > dt,
+dl.dlParallel > dt {
+  float: left;
+  margin-right: 1em;
+}
+dl.dlNewline > dt {
+  float: none;
+}
+
+/* Provide styling for table cell text alignment */
+table td.text-left,
+table th.text-left {
+  text-align: left;
+}
+table td.text-center,
+table th.text-center {
+  text-align: center;
+}
+table td.text-right,
+table th.text-right {
+  text-align: right;
+}
+
+/* Make the alternative author contact information look less like just another
+   author, and group it closer with the primary author contact information */
+.alternative-contact {
+  margin: 0.5em 0 0.25em 0;
+}
+address .non-ascii {
+  margin: 0 0 0 2em;
+}
+
+/* With it being possible to set tables with alignment
+  left, center, and right, { width: 100%; } does not make sense */
+table {
+  width: auto;
+}
+
+/* Avoid reference text that sits in a block with very wide left margin,
+   because of a long floating dt label.*/
+.references dd {
+  overflow: visible;
+}
+
+/* Control caption placement */
+caption {
+  caption-side: bottom;
+}
+
+/* Limit the width of the author address vcard, so names in right-to-left
+   script don't end up on the other side of the page. */
+
+address.vcard {
+  max-width: 30em;
+  margin-right: auto;
+}
+
+/* For address alignment dependent on LTR or RTL scripts */
+address div.left {
+  text-align: left;
+}
+address div.right {
+  text-align: right;
+}
+
+/* Provide table alignment support.  We can't use the alignX classes above
+   since they do unwanted things with caption and other styling. */
+table.right {
+ margin-left: auto;
+ margin-right: 0;
+}
+table.center {
+ margin-left: auto;
+ margin-right: auto;
+}
+table.left {
+ margin-left: 0;
+ margin-right: auto;
+}
+
+/* Give the table caption label the same styling as the figcaption */
+caption a[href] {
+  color: #222;
+}
+
+@media print {
+  .toplink {
+    display: none;
+  }
+
+  /* avoid overwriting the top border line with the ToC header */
+  #toc {
+    padding-top: 1px;
+  }
+
+  /* Avoid page breaks inside dl and author address entries */
+  .vcard {
+    page-break-inside: avoid;
+  }
+
+}
+/* Tweak the bcp14 keyword presentation */
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+/* Tweak the invisible space above H* in order not to overlay links in text above */
+ h2 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 31px;
+ }
+ h3 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 24px;
+ }
+ h4 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 24px;
+ }
+/* Float artwork pilcrow to the right */
+@media screen {
+  .artwork a.pilcrow {
+    display: block;
+    line-height: 0.7;
+    margin-top: 0.15em;
+  }
+}
+/* Make pilcrows on dd visible */
+@media screen {
+  dd:hover > a.pilcrow {
+    visibility: visible;
+  }
+}
+/* Make the placement of figcaption match that of a table's caption
+   by removing the figure's added bottom margin */
+.alignLeft.art-text,
+.alignCenter.art-text,
+.alignRight.art-text {
+   margin-bottom: 0;
+}
+.alignLeft,
+.alignCenter,
+.alignRight {
+  margin: 1em 0 0 0;
+}
+/* In print, the pilcrow won't show on hover, so prevent it from taking up space,
+   possibly even requiring a new line */
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+/* Styling for the external metadata */
+div#external-metadata {
+  background-color: #eee;
+  padding: 0.5em;
+  margin-bottom: 0.5em;
+  display: none;
+}
+div#internal-metadata {
+  padding: 0.5em;                       /* to match the external-metadata padding */
+}
+/* Styling for title RFC Number */
+h1#rfcnum {
+  clear: both;
+  margin: 0 0 -1em;
+  padding: 1em 0 0 0;
+}
+/* Make .olPercent look the same as <ol><li> */
+dl.olPercent > dd {
+  margin-bottom: 0.25em;
+  min-height: initial;
+}
+/* Give aside some styling to set it apart */
+aside {
+  border-left: 1px solid #ddd;
+  margin: 1em 0 1em 2em;
+  padding: 0.2em 2em;
+}
+aside > dl,
+aside > ol,
+aside > ul,
+aside > table,
+aside > p {
+  margin-bottom: 0.5em;
+}
+/* Additional page break settings */
+@media print {
+  figcaption, table caption {
+    page-break-before: avoid;
+  }
+}
+/* Font size adjustments for print */
+@media print {
+  body  { font-size: 10pt;      line-height: normal; max-width: 96%; }
+  h1    { font-size: 1.72em;    padding-top: 1.5em; } /* 1*1.2*1.2*1.2 */
+  h2    { font-size: 1.44em;    padding-top: 1.5em; } /* 1*1.2*1.2 */
+  h3    { font-size: 1.2em;     padding-top: 1.5em; } /* 1*1.2 */
+  h4    { font-size: 1em;       padding-top: 1.5em; }
+  h5, h6 { font-size: 1em;      margin: initial; padding: 0.5em 0 0.3em; }
+}
+/* Sourcecode margin in print, when there's no pilcrow */
+@media print {
+  .artwork,
+  .artwork > pre,
+  .sourcecode {
+    margin-bottom: 1em;
+  }
+}
+/* Avoid narrow tables forcing too narrow table captions, which may render badly */
+table {
+  min-width: 20em;
+}
+/* ol type a */
+ol.type-a { list-style-type: lower-alpha; }
+ol.type-A { list-style-type: upper-alpha; }
+ol.type-i { list-style-type: lower-roman; }
+ol.type-I { list-style-type: lower-roman; }
+/* Apply the print table and row borders in general, on request from the RPC,
+and increase the contrast between border and odd row background slightly */
+table {
+  border: 1px solid #ddd;
+}
+td {
+  border-top: 1px solid #ddd;
+}
+tr {
+  break-inside: avoid;
+}
+tr:nth-child(2n+1) > td {
+  background-color: #f8f8f8;
+}
+/* Use style rules to govern display of the TOC. */
+@media screen and (max-width: 1023px) {
+  #toc nav { display: none; }
+  #toc.active nav { display: block; }
+}
+/* Add support for keepWithNext */
+.keepWithNext {
+  break-after: avoid-page;
+  break-after: avoid-page;
+}
+/* Add support for keepWithPrevious */
+.keepWithPrevious {
+  break-before: avoid-page;
+}
+/* Change the approach to avoiding breaks inside artwork etc. */
+figure, pre, table, .artwork, .sourcecode  {
+  break-before: auto;
+  break-after: auto;
+}
+/* Avoid breaks between <dt> and <dd> */
+dl {
+  break-before: auto;
+  break-inside: auto;
+}
+dt {
+  break-before: auto;
+  break-after: avoid-page;
+}
+dd {
+  break-before: avoid-page;
+  break-after: auto;
+  orphans: 3;
+  widows: 3
+}
+span.break, dd.break {
+  margin-bottom: 0;
+  min-height: 0;
+  break-before: auto;
+  break-inside: auto;
+  break-after: auto;
+}
+/* Undo break-before ToC */
+@media print {
+  #toc {
+    break-before: auto;
+  }
+}
+/* Text in compact lists should not get extra bottom margin space,
+   since that would makes the list not compact */
+ul.compact p, .ulCompact p,
+ol.compact p, .olCompact p {
+ margin: 0;
+}
+/* But the list as a whole needs the extra space at the end */
+section ul.compact,
+section .ulCompact,
+section ol.compact,
+section .olCompact {
+  margin-bottom: 1em;                    /* same as p not within ul.compact etc. */
+}
+/* The tt and code background above interferes with for instance table cell
+   backgrounds.  Changed to something a bit more selective. */
+tt, code {
+  background-color: transparent;
+}
+p tt, p code, li tt, li code {
+  background-color: #f8f8f8;
+}
+/* Tweak the pre margin -- 0px doesn't come out well */
+pre {
+   margin-top: 0.5px;
+}
+/* Tweak the compact list text */
+ul.compact, .ulCompact,
+ol.compact, .olCompact,
+dl.compact, .dlCompact {
+  line-height: normal;
+}
+/* Don't add top margin for nested lists */
+li > ul, li > ol, li > dl,
+dd > ul, dd > ol, dd > dl,
+dl > dd > dl {
+  margin-top: initial;
+}
+/* Elements that should not be rendered on the same line as a <dt> */
+/* This should match the element list in writer.text.TextWriter.render_dl() */
+dd > div.artwork:first-child,
+dd > aside:first-child,
+dd > figure:first-child,
+dd > ol:first-child,
+dd > div.sourcecode:first-child,
+dd > table:first-child,
+dd > ul:first-child {
+  clear: left;
+}
+/* fix for weird browser behaviour when <dd/> is empty */
+dt+dd:empty::before{
+  content: "\00a0";
+}
+/* Make paragraph spacing inside <li> smaller than in body text, to fit better within the list */
+li > p {
+  margin-bottom: 0.5em
+}
+/* Don't let p margin spill out from inside list items */
+li > p:last-of-type:only-child {
+  margin-bottom: 0;
+}
+</style>
+<link href="rfc-local.css" rel="stylesheet" type="text/css">
+<script type="application/javascript">async function addMetadata(){try{const e=document.styleSheets[0].cssRules;for(let t=0;t<e.length;t++)if(/#identifiers/.exec(e[t].selectorText)){const a=e[t].cssText.replace("#identifiers","#external-updates");document.styleSheets[0].insertRule(a,document.styleSheets[0].cssRules.length)}}catch(e){console.log(e)}const e=document.getElementById("external-metadata");if(e)try{var t,a="",o=function(e){const t=document.getElementsByTagName("meta");for(let a=0;a<t.length;a++)if(t[a].getAttribute("name")===e)return t[a].getAttribute("content");return""}("rfc.number");if(o){t="https://www.rfc-editor.org/rfc/rfc"+o+".json";try{const e=await fetch(t);a=await e.json()}catch(e){t=document.URL.indexOf("html")>=0?document.URL.replace(/html$/,"json"):document.URL+".json";const o=await fetch(t);a=await o.json()}}if(!a)return;e.style.display="block";const s="",d="https://datatracker.ietf.org/doc",n="https://datatracker.ietf.org/ipr/search",c="https://www.rfc-editor.org/info",l=a.doc_id.toLowerCase(),i=a.doc_id.slice(0,3).toLowerCase(),f=a.doc_id.slice(3).replace(/^0+/,""),u={status:"Status",obsoletes:"Obsoletes",obsoleted_by:"Obsoleted By",updates:"Updates",updated_by:"Updated By",see_also:"See Also",errata_url:"Errata"};let h="<dl style='overflow:hidden' id='external-updates'>";["status","obsoletes","obsoleted_by","updates","updated_by","see_also","errata_url"].forEach(e=>{if("status"==e){a[e]=a[e].toLowerCase();var t=a[e].split(" "),o=t.length,w="",p=1;for(let e=0;e<o;e++)p<o?w=w+r(t[e])+" ":w+=r(t[e]),p++;a[e]=w}else if("obsoletes"==e||"obsoleted_by"==e||"updates"==e||"updated_by"==e){var g,m="",b=1;g=a[e].length;for(let t=0;t<g;t++)a[e][t]&&(a[e][t]=String(a[e][t]).toLowerCase(),m=b<g?m+"<a href='"+s+"/rfc/".concat(a[e][t])+"'>"+a[e][t].slice(3)+"</a>, ":m+"<a href='"+s+"/rfc/".concat(a[e][t])+"'>"+a[e][t].slice(3)+"</a>",b++);a[e]=m}else if("see_also"==e){var y,L="",C=1;y=a[e].length;for(let t=0;t<y;t++)if(a[e][t]){a[e][t]=String(a[e][t]);var _=a[e][t].slice(0,3),v=a[e][t].slice(3).replace(/^0+/,"");L=C<y?"RFC"!=_?L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+_+" "+v+"</a>, ":L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+v+"</a>, ":"RFC"!=_?L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+_+" "+v+"</a>":L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+v+"</a>",C++}a[e]=L}else if("errata_url"==e){var R="";R=a[e]?R+"<a href='"+a[e]+"'>Errata exist</a> | <a href='"+d+"/"+l+"'>Datatracker</a>| <a href='"+n+"/?"+i+"="+f+"&submit="+i+"'>IPR</a> | <a href='"+c+"/"+l+"'>Info page</a>":"<a href='"+d+"/"+l+"'>Datatracker</a> | <a href='"+n+"/?"+i+"="+f+"&submit="+i+"'>IPR</a> | <a href='"+c+"/"+l+"'>Info page</a>",a[e]=R}""!=a[e]?"Errata"==u[e]?h+=`<dt>More info:</dt><dd>${a[e]}</dd>`:h+=`<dt>${u[e]}:</dt><dd>${a[e]}</dd>`:"Errata"==u[e]&&(h+=`<dt>More info:</dt><dd>${a[e]}</dd>`)}),h+="</dl>",e.innerHTML=h}catch(e){console.log(e)}else console.log("Could not locate metadata <div> element");function r(e){return e.charAt(0).toUpperCase()+e.slice(1)}}window.removeEventListener("load",addMetadata),window.addEventListener("load",addMetadata);</script>
+</head>
+<body class="xml2rfc">
+<script src="metadata.min.js"></script>
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">BGP MultiNexthop attribute</td>
+<td class="right">August 2024</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Vairavakkalai, et al.</td>
+<td class="center">Expires 12 February 2025</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-ietf-idr-multinexthop-attribute-01</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2024-08-11" class="published">11 August 2024</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2025-02-12">12 February 2025</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">K. Vairavakkalai, <span class="editor">Ed.</span>
+</div>
+<div class="org">Juniper Networks, Inc.</div>
+</div>
+<div class="author">
+      <div class="author-name">M. Jeyananth</div>
+<div class="org">Juniper Networks, Inc.</div>
+</div>
+<div class="author">
+      <div class="author-name">M. Nanduri</div>
+<div class="org">Microsoft</div>
+</div>
+<div class="author">
+      <div class="author-name">Lingala</div>
+<div class="org">AT&amp;T</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">BGP MultiNexthop Attribute</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">Today, a BGP speaker can advertise one nexthop for a set of NLRIs in
+      an Update message. This nexthop can be encoded in either the top-level
+      BGP-Nexthop attribute (code 3), or inside the MP_REACH_NLRI attribute
+      (code 14). Forwarding information related to the nexthop is scattered
+      across various attributes, extended communities or the NLRI field.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">This document defines a new optional non-transitive BGP attribute
+      called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD, that
+      can be used to carry an ordered set of one or more Nexthops in the same
+      Update message, with all forwarding information being carried in one
+      attribute, scoped on a per nexthop basis.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+</section>
+<section class="note" id="section-note.1">
+      <h2 id="name-requirements-language">
+<a href="#name-requirements-language" class="section-name selfRef">Requirements Language</a>
+      </h2>
+<p id="section-note.1-1">The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+      "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+      document are to be interpreted as described in <span><a href="#RFC2119" class="internal xref">RFC 2119</a> [<a href="#RFC2119" class="cite xref">RFC2119</a>]</span>.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 12 February 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2024 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-terminology" class="internal xref">Terminology</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1">
+                <p id="section-toc.1-1.2.2.1.1" class="keepWithNext"><a href="#section-2.1" class="auto internal xref">2.1</a>.  <a href="#name-definitions" class="internal xref">Definitions</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-motivation" class="internal xref">Motivation</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-base-encoding-and-protocol-" class="internal xref">Base Encoding And Protocol Procedures</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-multinexthop-attribute" class="internal xref">MultiNexthop Attribute</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.1">
+                    <p id="section-toc.1-1.4.2.1.2.1.1"><a href="#section-4.1.1" class="auto internal xref">4.1.1</a>.  <a href="#name-processing-the-mnh-header" class="internal xref">Processing the MNH Header</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.2">
+                    <p id="section-toc.1-1.4.2.1.2.2.1"><a href="#section-4.1.2" class="auto internal xref">4.1.2</a>.  <a href="#name-validation-of-mnh-against-n" class="internal xref">Validation of MNH against Nexthop</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.3">
+                    <p id="section-toc.1-1.4.2.1.2.3.1"><a href="#section-4.1.3" class="auto internal xref">4.1.3</a>.  <a href="#name-scope-of-use-origination-an" class="internal xref">Scope of Use, Origination and Propagation</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.4">
+                    <p id="section-toc.1-1.4.2.1.2.4.1"><a href="#section-4.1.4" class="auto internal xref">4.1.4</a>.  <a href="#name-error-handling" class="internal xref">Error Handling</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-mnh-tlv" class="internal xref">MNH TLV</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.1">
+                    <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-error-handling-2" class="internal xref">Error Handling</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-nexthop-forwarding-informat" class="internal xref">Nexthop Forwarding Information TLV</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.1">
+                    <p id="section-toc.1-1.4.2.3.2.1.1"><a href="#section-4.3.1" class="auto internal xref">4.3.1</a>.  <a href="#name-error-handling-3" class="internal xref">Error Handling</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-forwarding-instruction-tlv" class="internal xref">Forwarding Instruction TLV</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.1">
+                    <p id="section-toc.1-1.4.2.4.2.1.1"><a href="#section-4.4.1" class="auto internal xref">4.4.1</a>.  <a href="#name-error-handling-4" class="internal xref">Error Handling</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-forwarding-argument-tlv" class="internal xref">Forwarding Argument TLV</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5.2.1">
+                    <p id="section-toc.1-1.4.2.5.2.1.1"><a href="#section-4.5.1" class="auto internal xref">4.5.1</a>.  <a href="#name-error-handling-5" class="internal xref">Error Handling</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6">
+                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="auto internal xref">4.6</a>.  <a href="#name-interaction-with-addpath" class="internal xref">Interaction with Addpath</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.7">
+                <p id="section-toc.1-1.4.2.7.1"><a href="#section-4.7" class="auto internal xref">4.7</a>.  <a href="#name-path-selection-consideratio" class="internal xref">Path Selection Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.7.2.1">
+                    <p id="section-toc.1-1.4.2.7.2.1.1"><a href="#section-4.7.1" class="auto internal xref">4.7.1</a>.  <a href="#name-determining-igp-cost" class="internal xref">Determining IGP Cost</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-tlvs-defined-in-this-docume" class="internal xref">TLVs Defined In This Document</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-mnh-tlvs" class="internal xref">MNH TLVs</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.1">
+                    <p id="section-toc.1-1.5.2.1.2.1.1"><a href="#section-5.1.1" class="auto internal xref">5.1.1</a>.  <a href="#name-primary-forwarding-path" class="internal xref">Primary Forwarding Path</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.2">
+                    <p id="section-toc.1-1.5.2.1.2.2.1"><a href="#section-5.1.2" class="auto internal xref">5.1.2</a>.  <a href="#name-repair-forwarding-path" class="internal xref">Repair Forwarding Path</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-forwarding-actions-in-fi-tl" class="internal xref">Forwarding Actions in FI TLV</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-forwarding-argument-tlvs" class="internal xref">Forwarding Argument TLVs</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.1">
+                    <p id="section-toc.1-1.5.2.3.2.1.1"><a href="#section-5.3.1" class="auto internal xref">5.3.1</a>.  <a href="#name-endpoint-identifier" class="internal xref">Endpoint Identifier</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.2">
+                    <p id="section-toc.1-1.5.2.3.2.2.1"><a href="#section-5.3.2" class="auto internal xref">5.3.2</a>.  <a href="#name-path-constraints" class="internal xref">Path Constraints</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.3">
+                    <p id="section-toc.1-1.5.2.3.2.3.1"><a href="#section-5.3.3" class="auto internal xref">5.3.3</a>.  <a href="#name-payload-encapsulation-info" class="internal xref">Payload Encapsulation Info</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.4">
+                    <p id="section-toc.1-1.5.2.3.2.4.1"><a href="#section-5.3.4" class="auto internal xref">5.3.4</a>.  <a href="#name-endpoint-attributes" class="internal xref">Endpoint Attributes</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-scaling-considerations" class="internal xref">Scaling Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-bgp-path-attributes" class="internal xref">BGP Path Attributes</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-capability-codes" class="internal xref">Capability Codes</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-bgp-multinexthop-attribute" class="internal xref">BGP MultiNextHop Attribute</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.1">
+                    <p id="section-toc.1-1.7.2.3.2.1.1"><a href="#section-7.3.1" class="auto internal xref">7.3.1</a>.  <a href="#name-multinexthop-mnh-tlv-types" class="internal xref">MultiNextHop (MNH) TLV Types</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.2">
+                    <p id="section-toc.1-1.7.2.3.2.2.1"><a href="#section-7.3.2" class="auto internal xref">7.3.2</a>.  <a href="#name-forwarding-action-types" class="internal xref">Forwarding Action Types</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.3">
+                    <p id="section-toc.1-1.7.2.3.2.3.1"><a href="#section-7.3.3" class="auto internal xref">7.3.3</a>.  <a href="#name-forwarding-argument-types" class="internal xref">Forwarding Argument Types</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.4">
+                    <p id="section-toc.1-1.7.2.3.2.4.1"><a href="#section-7.3.4" class="auto internal xref">7.3.4</a>.  <a href="#name-endpoint-types" class="internal xref">Endpoint Types</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.5">
+                    <p id="section-toc.1-1.7.2.3.2.5.1"><a href="#section-7.3.5" class="auto internal xref">7.3.5</a>.  <a href="#name-path-constrain-types" class="internal xref">Path Constrain Types</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.6">
+                    <p id="section-toc.1-1.7.2.3.2.6.1"><a href="#section-7.3.6" class="auto internal xref">7.3.6</a>.  <a href="#name-encapsulation-types" class="internal xref">Encapsulation Types</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.7">
+                    <p id="section-toc.1-1.7.2.3.2.7.1"><a href="#section-7.3.7" class="auto internal xref">7.3.7</a>.  <a href="#name-endpoint-attribute-types" class="internal xref">Endpoint Attribute Types</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref"></a><a href="#name-contributors" class="internal xref">Contributors</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref"></a><a href="#name-acknowledgements" class="internal xref">Acknowledgements</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref"></a><a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
+                <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref"></a><a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
+                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref"></a><a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-example-of-usecases" class="internal xref">Example of Usecases</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
+                <p id="section-toc.1-1.12.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-signaling-wecmp-to-ingress-" class="internal xref">Signaling WECMP to Ingress Node</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
+                <p id="section-toc.1-1.12.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-signaling-optimal-forwardin" class="internal xref">Signaling Optimal Forwarding Exitpoints to Ingress Node</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.3">
+                <p id="section-toc.1-1.12.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-load-balancing-to-multiple-" class="internal xref">Load balancing to multiple CEs in a VRF</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.4">
+                <p id="section-toc.1-1.12.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-signaling-desired-forwardin" class="internal xref">Signaling Desired Forwarding Behavior for MPLS Upstream labels at Receiving Node</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.5">
+                <p id="section-toc.1-1.12.2.5.1"><a href="#appendix-A.5" class="auto internal xref">A.5</a>.  <a href="#name-load-balancing-over-ebgp-pa" class="internal xref">Load Balancing over EBGP Parallel Links</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.6">
+                <p id="section-toc.1-1.12.2.6.1"><a href="#appendix-A.6" class="auto internal xref">A.6</a>.  <a href="#name-flowspec-routes-with-multip" class="internal xref">Flowspec Routes with Multiple "Redirect IP" next hops</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.7">
+                <p id="section-toc.1-1.12.2.7.1"><a href="#appendix-A.7" class="auto internal xref">A.7</a>.  <a href="#name-color-only-resolution-next-" class="internal xref">Color-Only Resolution next hop</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.8">
+                <p id="section-toc.1-1.12.2.8.1"><a href="#appendix-A.8" class="auto internal xref">A.8</a>.  <a href="#name-avoid-label-advertisement-o" class="internal xref">Avoid Label Advertisement Oscillation Between Multihomed PEs.</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.9">
+                <p id="section-toc.1-1.12.2.9.1"><a href="#appendix-A.9" class="auto internal xref">A.9</a>.  <a href="#name-signaling-intent-over-pe-ce" class="internal xref">Signaling Intent over PE-CE Attachment Circuit</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.9.2.1">
+                    <p id="section-toc.1-1.12.2.9.2.1.1"><a href="#appendix-A.9.1" class="auto internal xref">A.9.1</a>.  <a href="#name-using-dscp-in-multinexthop-" class="internal xref">Using DSCP in MultiNexthop Attribute</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.9.2.2">
+                    <p id="section-toc.1-1.12.2.9.2.2.1"><a href="#appendix-A.9.2" class="auto internal xref">A.9.2</a>.  <a href="#name-mpls-enabled-ce" class="internal xref">MPLS-enabled CE</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.10">
+                <p id="section-toc.1-1.12.2.10.1"><a href="#appendix-A.10" class="auto internal xref">A.10</a>. <a href="#name-4pe-signal-mpls-label-for-i" class="internal xref">4PE - Signal MPLS Label for IPv4 Unicast routes</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">Today, a BGP speaker can advertise one nexthop for a set of NLRIs in
+      an Update message. This nexthop can be encoded in either the top-level
+      BGP-Nexthop attribute (code 3), or inside the MP_REACH_NLRI attribute
+      (code 14). Forwarding information related to the nexthop is scattered
+      across various attributes, extended communities or the NLRI field.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">This document defines a new optional non-transitive BGP attribute
+      called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD, that
+      can be used to carry an ordered set of one or more Nexthops in the same
+      route, with all forwarding information being carried in one attribute,
+      scoped on a per nexthop basis.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3"></p>
+</section>
+<section id="section-2">
+      <h2 id="name-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
+      </h2>
+<p id="section-2-1">iSN: Ingress Service Node<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">eSN: Egress Service Node<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">NLRI: Network Layer Reachability Information<a href="#section-2-3" class="pilcrow">¶</a></p>
+<p id="section-2-4">AFI: Address Family Identifier<a href="#section-2-4" class="pilcrow">¶</a></p>
+<p id="section-2-5">SAFI: Subsequent Address Family Identifier<a href="#section-2-5" class="pilcrow">¶</a></p>
+<p id="section-2-6">PE : Provider Edge<a href="#section-2-6" class="pilcrow">¶</a></p>
+<p id="section-2-7">RT : Route-Target extended community<a href="#section-2-7" class="pilcrow">¶</a></p>
+<p id="section-2-8">RD : Route-Distinguisher<a href="#section-2-8" class="pilcrow">¶</a></p>
+<p id="section-2-9">MPLS: Multi Protocol Label Switching<a href="#section-2-9" class="pilcrow">¶</a></p>
+<p id="section-2-10">ECMP: Equal Cost Multi Path<a href="#section-2-10" class="pilcrow">¶</a></p>
+<p id="section-2-11">WECMP: Weighted Equal Cost Multi Path<a href="#section-2-11" class="pilcrow">¶</a></p>
+<p id="section-2-12">FRR: Fast Re Route<a href="#section-2-12" class="pilcrow">¶</a></p>
+<p id="section-2-13">PNH : Protocol Next hop address carried in a BGP Update message<a href="#section-2-13" class="pilcrow">¶</a></p>
+<p id="section-2-14">MNH: BGP MultiNextHop attribute<a href="#section-2-14" class="pilcrow">¶</a></p>
+<p id="section-2-15">NFI: Nexthop Forwarding Information<a href="#section-2-15" class="pilcrow">¶</a></p>
+<p id="section-2-16">FI: Forwarding Instruction<a href="#section-2-16" class="pilcrow">¶</a></p>
+<p id="section-2-17">FA: Forwarding Argument<a href="#section-2-17" class="pilcrow">¶</a></p>
+<section id="section-2.1">
+        <h3 id="name-definitions">
+<a href="#section-2.1" class="section-number selfRef">2.1. </a><a href="#name-definitions" class="section-name selfRef">Definitions</a>
+        </h3>
+<p id="section-2.1-1">MULTI_NEXT_HOP (aka MNH): BGP MultiNexthop attribute. The new
+        attribute defined by this document.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
+<p id="section-2.1-2">MNH TLV: Top level TLV contained in a MULTI_NEXT_HOP.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
+<p id="section-2.1-3">NFI TLV: Nexthop Forwarding Information TLV, contained in a MNH
+        TLV.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.1-4">FI TLV: Forwarding Instruction TLV, contained in a NFI TLV.<a href="#section-2.1-4" class="pilcrow">¶</a></p>
+<p id="section-2.1-5">FA TLV: Forwarding Argument TLV, contained as an argument to a FI
+        in the FI TLV.<a href="#section-2.1-5" class="pilcrow">¶</a></p>
+</section>
+</section>
+<section id="section-3">
+      <h2 id="name-motivation">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-motivation" class="section-name selfRef">Motivation</a>
+      </h2>
+<p id="section-3-1">Today, in a BGP Update, forwarding information related to the BGP
+      nexthop is scattered across various attributes, extended communities or
+      the NLRI field. On some other address families like Flowspec, nexthop
+      address is carried without using the nexthop attribute, in one or more
+      extended communities of specific type. It may be desirable to carry them
+      scoped in a single attribute.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">It may be desirable to carry the forwarding information for a nexthop
+      scoped in a single attribute, and uniformly for all address
+      families.<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">For cases where multiple nexthops need to be advertised, BGP Addpath
+      <span>[<a href="#RFC7911" class="cite xref">RFC7911</a>]</span> is used with some address families. Though
+      Addpath allows basic ability to advertise multiple routes, it does not
+      allow the sender to express the desired relationship between the
+      multiple nexthops being advertised e.g., relative ordering, type of load
+      balancing, fast reroute. These are local decisions based on
+      configuration and path selection at the receiving node. Also, Addpath
+      does not consider things like Link-bandwidth community when selecting
+      add-path routes. Some scenarios (explained in Appendix A) may benefit
+      from having a mechanism, where egress node can signal multiple nexthops
+      along with their relationship to ingress nodes.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<p id="section-3-4">It would be desirable to have a common way to carry more than one
+      nexthop on a BGP route of any family, and express relationship between
+      them.<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">This document defines a new optional non-transitive BGP attribute
+      "MultiNexthop (MNH)" that can be used for these purposes. The MNH
+      attribute can be used in any BGP family that wants to carry one or more
+      nexthops, with all forwarding information being carried in one
+      attribute, scoped on a per nexthop basis.<a href="#section-3-5" class="pilcrow">¶</a></p>
+<p id="section-3-6">E.g. The MNH can be used to advertise MPLS label along with nexthop
+      for labeled and unlabeled families (e.g. Inet Unicast, Inet6 Unicast,
+      Flowspec) alike. Such that, mechanisms at the transport layer can work
+      uniformly on labeled and unlabled BGP families to realize various
+      usecases.<a href="#section-3-6" class="pilcrow">¶</a></p>
+</section>
+<section id="section-4">
+      <h2 id="name-base-encoding-and-protocol-">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-base-encoding-and-protocol-" class="section-name selfRef">Base Encoding And Protocol Procedures</a>
+      </h2>
+<p id="section-4-1">"MultiNexthop (MNH)" is a new BGP optional non-transitive attribute
+      (code TBD), that can be used to carry an ordered set of one or more
+      Nexthops in the same route, with all forwarding information being
+      carried in one attribute, scoped on a per nexthop basis. This attribute
+      describes forwarding instructions using TLVs as shown below.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">This section describes the organization and encoding of the MNH
+      attribute.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<span id="name-overview-of-mnh-attribute-l"></span><div id="eye-candy">
+<figure id="figure-1">
+        <div class="alignLeft art-text artwork" id="section-4-3.1">
+<pre>
+
+          MNH Attribute: {
+                PrimaryPath {
+                    [Forwarding Instruction 1],
+                     ..
+                    [Forwarding Instruction n]
+                }
+                BackupPath {
+                    [Forwarding Instruction 1],
+                     ..
+                    [Forwarding Instruction n]
+                }
+          }
+
+          Forwarding Instruction: {
+              {FwdAction, Forwarding Arguments}
+          }
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-overview-of-mnh-attribute-l" class="selfRef">Overview of MNH Attribute Layout - Eye candy summary</a>
+        </figcaption></figure>
+</div>
+<p id="section-4-4">A MNH attribute consists of a Header and one or more "MNH TLVs".<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-5">A MNH TLV contains a Type and one unit of "Nexthop Forwarding
+      Information" (NFI TLV).<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">A NFI TLV contains one or more "Forwarding Instructions" (FI
+      TLVs).<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">A FI TLV contains a "Forwarding Action" code and one more "Forwarding
+      Arguments" (FA TLVs).<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">The FA TLVs describe the parameters required to complete a
+      "Forwarding Action".<a href="#section-4-8" class="pilcrow">¶</a></p>
+<div id="mnh-attr">
+<section id="section-4.1">
+        <h3 id="name-multinexthop-attribute">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-multinexthop-attribute" class="section-name selfRef">MultiNexthop Attribute</a>
+        </h3>
+<span id="name-multinexthop-bgp-attribute"></span><div id="fig-mnh-attr">
+<figure id="figure-2">
+          <div class="alignLeft art-text artwork" id="section-4.1-1.1">
+<pre>
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Attr. Flags  |Attr. Type Code|          Length               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |Ver| MNH-Flags |  Advt-PNH-Len |       Advertising PNH ..      |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                  .. Address                                   |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                       MNH TLV                                 ~
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    ~                       MNH TLV                                 |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-multinexthop-bgp-attribute" class="selfRef">MultiNexthop - BGP Attribute</a>
+          </figcaption></figure>
+</div>
+<div class="alignLeft art-text artwork" id="section-4.1-2">
+<pre>
+ MNH Header:
+   - Attr. Flags (1 octet)
+       BGP Path-attribute flags. indicating an Optional Non-Transitive
+       attribute. i.e. Optional bit set, Transitive bit reset.
+
+   - Attr. Type Code (1 octet)
+       Type code allotted by IANA. TBD.
+
+   - Length (1 or 2 octets)
+       One or Two bytes field stating length of attribute value in bytes.
+
+   - Version (2 bits)
+       MNH Version - indicates layout of the MNH header.
+       Set to 0x0 indicating "MNH v0", which is defined in this document.
+
+       If there is any significant changes to the skeletal layout of
+       MNH attribute in future, this Version field will be useful.
+
+   - MNH Flags (6 bits)
+
+           2 3 4 5 6 7
+          +-+-+-+-+-+-+
+          |R R R R R M|
+          +-+-+-+-+-+-+
+
+       6 bits following the Version bits are MNH Flags.
+
+           M: "Mandatory".
+              Value 1 indicates that this MNH attribute is mandatory.
+              If this MNH attr is invalid, the route is Unusable Hidden.
+
+           R: Reserved. MUST be set to zero, SHOULD be ignored by receiver.
+
+   - Advt-PNH-Len (1 octet)
+       Length in octets (4 for IPv4, 16 for IPv6, 12 for VPN-IPv4,
+       24 for VPN-IPv6) of Advertising PNH Address.
+
+   - Advertising PNH Address (Advt-PNH-Len octets)
+       BGP Protocol Nexthop address advertised in NEXT_HOP or MP_REACH_NLRI attr.
+       Used to sanity-check the MNH attribute. In case of RFC-2545, this will be
+       the global (non link-local) IPv6 address.
+
+ MNH TLVs: One or more MNH TLVs are carried in a MNH attr.
+      MNH TLV is described in subsequent sections.
+
+</pre><a href="#section-4.1-2" class="pilcrow">¶</a>
+</div>
+<section id="section-4.1.1">
+          <h4 id="name-processing-the-mnh-header">
+<a href="#section-4.1.1" class="section-number selfRef">4.1.1. </a><a href="#name-processing-the-mnh-header" class="section-name selfRef">Processing the MNH Header</a>
+          </h4>
+<p id="section-4.1.1-1">A BGP speaker MUST fill MNH Version field to 0.<a href="#section-4.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1.1-2">If a MNH is received with a Version other than 0, the MNH
+          attribute MUST be considered invalid, and be treated as Unrecognized
+          Non-transitive attribute.<a href="#section-4.1.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1.1-3">The "Advertising PNH" field is validated as described in <a href="#mnh-validate-nh" class="auto internal xref">Section 4.1.2</a><a href="#section-4.1.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="mnh-validate-nh">
+<section id="section-4.1.2">
+          <h4 id="name-validation-of-mnh-against-n">
+<a href="#section-4.1.2" class="section-number selfRef">4.1.2. </a><a href="#name-validation-of-mnh-against-n" class="section-name selfRef">Validation of MNH against Nexthop</a>
+          </h4>
+<p id="section-4.1.2-1">When adding a MultiNexthop attribute to an advertised BGP route,
+          the speaker MUST put the same next-hop address in the Advertising
+          PNH field as it put in the Nexthop field inside MP_REACH_NLRI
+          attribute (code 14) if one exists, or the NEXT_HOP attribute (code
+          3).<a href="#section-4.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.1.2-2">A speaker that adds a new MNH attribute to the advertised BGP
+          route, it MUST record in the "Advertising PNH" field the same
+          next-hop address as used in MP_REACH_NLRI attribute if one exists,
+          or the NEXT_HOP attribute.<a href="#section-4.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.1.2-3">A speaker receiving a MNH attribute SHOULD ignore it if the
+          next-hop address contained in 'Advertising PNH' field is not the
+          same as the nexthop address contained in MP_REACH_NLRI attribute if
+          one exists, or the NEXT_HOP attribute. <span>[<a href="#RFC7606" class="cite xref">RFC7606</a>]</span>
+          'Attribute Discard' approach is used.<a href="#section-4.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.1.2-4">In case of <span>[<a href="#RFC2545" class="cite xref">RFC2545</a>]</span>, the global (non link-local)
+          IPv6 address should be used for this purpose.<a href="#section-4.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.1.2-5">As specified in <span>[<a href="#RFC7606" class="cite xref">RFC7606</a>]</span>BGP update message can
+          contain no more than one instance of MP_REACH attribute or NEXT_HOP
+          attribute. Similarly, a BGP update MUST contain no more than one
+          instance of MNH attribute. If the MNH attribute (whether recognized
+          or unrecognized) appears more than once in an UPDATE message, then
+          all the occurrences of the attribute other than the first one SHALL
+          be discarded and the UPDATE message will continue to be processed.
+          The anamoly MAY be logged for diagnosis.<a href="#section-4.1.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<section id="section-4.1.3">
+          <h4 id="name-scope-of-use-origination-an">
+<a href="#section-4.1.3" class="section-number selfRef">4.1.3. </a><a href="#name-scope-of-use-origination-an" class="section-name selfRef">Scope of Use, Origination and Propagation</a>
+          </h4>
+<p id="section-4.1.3-1">The MNH attribute is intended to be used in a BGP free core,
+          between egress and ingress BGP speakers that understand this
+          attribute. These BGP speakers may have an intra-AS or inter-AS BGP
+          session between them. On propagating the route with nexthop altered,
+          a new MNH attribute MAY be added by the advertising speaker.<a href="#section-4.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.1.3-2">To avoid un-intentionally leaking the MNH to another AS, via a
+          BGP speaker that does not understand MNH attribute, it is defined as
+          "optional non-transitive". But this also means that a RR needs to be
+          upgraded to support this attribute before any PEs in the network can
+          make use of it.<a href="#section-4.1.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.1.3-3">Use of MNH on a BGP session is disabled by default. An
+          implementation MUST provide configuration control on a per BGP
+          neighbor address family basis, to enable MNH support.<a href="#section-4.1.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.1.3-4">A BGP speaker MUST NOT advertise MNH on a BGP route if MNH
+          support is not enabled for the corresponding address family on the
+          advertising BGP session.<a href="#section-4.1.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.1.3-5">If the MNH attribute is received on a BGP session where MNH
+          support is not enabled, the attribute MUST be treated as
+          Unrecognized non-transitive. This rule provides additional
+          protection against unintended propagation of this attribute, when
+          both BGP speakers understand MNH but receiver has not enabled the
+          support. A RFC3392 Capability is not used for this purpose, because
+          it would cause session reset whenever 'MNH support' config is
+          changed.<a href="#section-4.1.3-5" class="pilcrow">¶</a></p>
+<p id="section-4.1.3-6">Remaining text in this section apply when both receiving and
+          advertising BGP sessions are enabled with MNH support.<a href="#section-4.1.3-6" class="pilcrow">¶</a></p>
+<p id="section-4.1.3-7">When a BGP speaker receives the MNH attribute on a BGP route, and
+          re-advertises it with the nexthop unchanged, it MUST propagate the
+          attribute unchanged. E.g. a Route Reflector.<a href="#section-4.1.3-7" class="pilcrow">¶</a></p>
+<p id="section-4.1.3-8">When a BGP speaker receives the MNH attribute on a BGP route, and
+          re-advertises it with the nexthop altered, it processes the
+          attribute but MUST NOT propagate it as-is. The BGP speaker MAY
+          however attach a new instance of MNH attribute on the re-advertised
+          route, and MAY derive its value from the received MNH.<a href="#section-4.1.3-8" class="pilcrow">¶</a></p>
+<p id="section-4.1.3-9">A BGP speaker re-advertising a BGP route with nexthop unchanged
+          MAY add the MNH attribute on the reflected BGP route, on behalf of
+          the originating BGP speaker. The "Advertising PNH field" in the MNH
+          is set to the Nexthop field in BGP route being re-advertised.<a href="#section-4.1.3-9" class="pilcrow">¶</a></p>
+</section>
+<div id="err-mnh-attr">
+<section id="section-4.1.4">
+          <h4 id="name-error-handling">
+<a href="#section-4.1.4" class="section-number selfRef">4.1.4. </a><a href="#name-error-handling" class="section-name selfRef">Error Handling</a>
+          </h4>
+<p id="section-4.1.4-1">A TLV or sub-TLV of a certain Type in a MNH attribute can occur
+          only once, unless specified otherwise by that type value. If
+          multiple instances of such TLV or sub-TLV is received, the instances
+          other than the first occurance are ignored.<a href="#section-4.1.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.1.4-2">If processing of a received MNH attribute resulted in an error,
+          then the "M bit" is used to decide the action. If the M bit is 0,
+          then the MNH attribute is ignored, <span>[<a href="#RFC7606" class="cite xref">RFC7606</a>]</span>
+          'Attribute Discard' approach MUST be used, and continue to process
+          rest of the update. If M bit is 1, then the BGP Route containing the
+          MNH MUST be considered Unusable.<a href="#section-4.1.4-2" class="pilcrow">¶</a></p>
+<p id="section-4.1.4-3">MNH employs a hierarchical error detection mechanism, where an
+          error in lower layer TLVs is percolated upwards to the MNH
+          attribute, based on the M bit.<a href="#section-4.1.4-3" class="pilcrow">¶</a></p>
+<p id="section-4.1.4-4">Implementations MAY provide policy configuration to set M bit to
+          0 on a MNH attribute being added, this helps with testing impact of
+          the MNH on receiving nodes. Once confident, the MNH attribute can be
+          re-advertised with M bit set. This helps in graceful incremental
+          deployment.<a href="#section-4.1.4-4" class="pilcrow">¶</a></p>
+<p id="section-4.1.4-5">The definition of a certain type of TLV or Sub-TLV in the MNH
+          should specify in it's procedures, the value of M bit to be used. An
+          implementation MAY provide configuration to set or reset the M bit.<a href="#section-4.1.4-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="mnh-tlv">
+<section id="section-4.2">
+        <h3 id="name-mnh-tlv">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-mnh-tlv" class="section-name selfRef">MNH TLV</a>
+        </h3>
+<p id="section-4.2-1">The type of MNH TLV describes how the forwarding information
+        carried in the MNH TLV is used.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<span id="name-mnh-tlv-2"></span><div id="mnh-tlv-fig">
+<figure id="figure-3">
+          <div class="alignLeft art-text artwork" id="section-4.2-2.1">
+<pre>
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  MNH-TLV Flags| MNH Type Code |          Length               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                              Value                            |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<a href="#name-mnh-tlv-2" class="selfRef">MNH TLV</a>
+          </figcaption></figure>
+</div>
+<div class="alignLeft art-text artwork" id="section-4.2-3">
+<pre>
+
+ - MNH-TLV Flags (1 octet)
+
+           0 1 2 3 4 5 6 7
+          +-+-+-+-+-+-+-+-+
+          |R R R R R R R M|
+          +-+-+-+-+-+-+-+-+
+
+       All bits are reserved.
+
+           M: "Mandatory".
+              Value 1 indicates that this MNH TLV is mandatory.
+              If this MNH TLV is not understood, the MNH attribute
+              containing it is considered invalid.
+
+           R: "Reserved".
+              MUST be set to zero, SHOULD be ignored by receiver.
+
+ This document defines the following MNH TLV types:
+
+ - MNH Type Code (1 octet)
+      Type of MNH TLV. 0 is Reserved.
+
+ - Length
+    Length of Value portion in octects.
+
+ - Value
+    Value portion contains the NFI TLV.
+</pre><a href="#section-4.2-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2-4">A sending BGP speaker advertises the information for one ore more
+        nexthops in a MNH TLV.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">Information received in MNH TLV is used to create the Forwarding
+        state at receiving BGP speaker.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.2-6">The MNH Type code indicates how the information carried in the TLV
+        is used at the receiving node.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
+<div id="err-mnh-tlv">
+<section id="section-4.2.1">
+          <h4 id="name-error-handling-2">
+<a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-error-handling-2" class="section-name selfRef">Error Handling</a>
+          </h4>
+<p id="section-4.2.1-1">If invalid Type Code 0 is received, the TLV is ignored
+          irrespective of "M bit", and continue to process rest of the
+          update.<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-2">If the received Type Code is incompatible for the prefix in BGP
+          NLRI, the TLV is considered invalid.<a href="#section-4.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-3">If an unrecognized Type Code is received, or processing of a
+          recognized MNH TLV type results in an error, the TLV is considered
+          invalid.<a href="#section-4.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-4">Invalid TLV is handled based on the "M bit" on the TLV.<a href="#section-4.2.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-5">If the M bit is 0, then the TLV is ignored and continue to
+          process rest of the update. If M bit is 1, then the MNH attribute is
+          considered invalid, triggering the procedures in <a href="#err-mnh-attr" class="auto internal xref">Section 4.1.4</a>.<a href="#section-4.2.1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="nfi-tlv">
+<section id="section-4.3">
+        <h3 id="name-nexthop-forwarding-informat">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-nexthop-forwarding-informat" class="section-name selfRef">Nexthop Forwarding Information TLV</a>
+        </h3>
+<p id="section-4.3-1">A Nexthop Forwarding Information TLV describes a MNH TLV. It
+        contains one or more Forwarding Instruction TLVs. These Forwarding
+        Instructions are the Forwarding Legs of the MNH.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<span id="name-nexthop-forwarding-informati"></span><div id="nfi-tlv-fig">
+<figure id="figure-4">
+          <div class="alignLeft art-text artwork" id="section-4.3-2.1">
+<pre>
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |  NFI  Flags   |      Num-Nexthops             |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |        Forwarding Instruction TLV (F.I. TLV)                  ~
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      ~        Forwarding Instruction TLV (F.I. YLV)                  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
+<a href="#name-nexthop-forwarding-informati" class="selfRef">Nexthop Forwarding Information TLV</a>
+          </figcaption></figure>
+</div>
+<div class="alignLeft art-text artwork" id="section-4.3-3">
+<pre>
+
+ - NFI Flags (1 octet)
+
+           0 1 2 3 4 5 6 7
+          +-+-+-+-+-+-+-+-+
+          |R R R R R R R M|
+          +-+-+-+-+-+-+-+-+
+
+           M: "Mandatory".
+              Value 1 indicates that this NFI TLV (Nexthop Leg) is mandatory.
+              If this Nexthop Leg is not understood, the MNH TLV
+              containing it is considered invalid.
+
+           R: "Reserved".
+              MUST be set to zero, SHOULD be ignored by receiver.
+
+ - Num-Nexthops
+        Number of F.I. TLVs.
+
+ - Forwarding Instruction TLV
+        Each F.I. TLV describes a Nexthop Leg.
+        Layout of Forwarding Instruction TLV is described in next section.
+
+</pre><a href="#section-4.3-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-4">M bit on a NFI TLV SHOULD be set to 1.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<div id="err-nfi-tlv">
+<section id="section-4.3.1">
+          <h4 id="name-error-handling-3">
+<a href="#section-4.3.1" class="section-number selfRef">4.3.1. </a><a href="#name-error-handling-3" class="section-name selfRef">Error Handling</a>
+          </h4>
+<p id="section-4.3.1-1">If Num-Nexthops in a received NFI is 0, it is considered invalid.
+          Irrespective of M bit value, the NFI TLV is ignored and remaining
+          update is processed.<a href="#section-4.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.3.1-2">The receiving BGP speaker MAY consider the "Num-Nexthops" value
+          in a Nexthop Forwarding Information TLV not acceptable, based on
+          it's forwarding capabilities or local policy. In such cases, the NFI
+          TLV is considered Invalid.<a href="#section-4.3.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.3.1-3">An Invalid NFI TLV is handled based on value of M bit on it. If
+          the M bit is 0, the NFI TLV is ignored, and remaining update
+          continue to be processed. If M bit is 1, the MNH TLV carrying this
+          NFI is considered Invalid, triggering the procedures in <a href="#err-mnh-tlv" class="auto internal xref">Section 4.2.1</a>.<a href="#section-4.3.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="fi-tlv">
+<section id="section-4.4">
+        <h3 id="name-forwarding-instruction-tlv">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-forwarding-instruction-tlv" class="section-name selfRef">Forwarding Instruction TLV</a>
+        </h3>
+<p id="section-4.4-1">Each Forwarding Instruction TLV describes a Nexthop Leg. It
+        expresses a "Forwarding Action" (FwdAction) along with arguments
+        required to complete the action. The type of actions defined by this
+        TLV are given below. The arguments are denoted by "Forwarding Argument
+        TLVs". The Forwarding Argument TLVs takes appropriate values based on
+        the FwdAction.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-2">Each FwdAction should note the Arguments needed to complete the
+        action. Any extranous arguments should be ignored. If the minimum set
+        of arguments required to complete an action is not received, the
+        Forwarding Instruction TLV should be ignored. Appropriate logging and
+        diagnostic info MAY be provided by an implementation to help
+        troubleshoot such scenarios.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<span id="name-forwarding-instruction-tlv-2"></span><div id="fi-tlv-fig">
+<figure id="figure-5">
+          <div class="alignLeft art-text artwork" id="section-4.4-3.1">
+<pre>
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |  F.I. Flags   |          Relative Pref        |  FwdAction    |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |            Length             |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                   Fwd Argument TLV                            ~
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      ~                   Fwd Argument TLV                            |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+</pre>
+</div>
+<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
+<a href="#name-forwarding-instruction-tlv-2" class="selfRef">Forwarding Instruction TLV</a>
+          </figcaption></figure>
+</div>
+<div class="alignLeft art-text artwork" id="section-4.4-4">
+<pre>
+  - F.I. Flags (1 octet)
+
+           0 1 2 3 4 5 6 7
+          +-+-+-+-+-+-+-+-+
+          |R R R R R R R M|
+          +-+-+-+-+-+-+-+-+
+
+           M: "Mandatory".
+              Value 1 indicates that this Forwarding Instruction is mandatory.
+              If this instruction is not understood, the NFI TLV
+              containing it is considered invalid.
+
+           R: "Reserved".
+              MUST be set to zero, SHOULD be ignored by receiver.
+
+ - Relative Pref (2 octets)
+
+     Unsigned 2 octet integer specifying relative order or preference, among
+     the many forwarding instructions, to use in FIB. All usable nexthop legs
+     with lowest relative-pref are installed in FIB as primary-path. Thus if
+     multiple legs exist with that lowest relative-pref, ECMP is formed.
+
+ - FwdAction (1 octet)
+
+     Type Code denoting the Forwarding action to be performed by receiving node.
+     0 is Reserved.
+
+ - Length (2 octets)
+
+    Length in octets, of all Forwarding Argument TLVs.
+
+</pre><a href="#section-4.4-4" class="pilcrow">¶</a>
+</div>
+<p id="section-4.4-5">Definition of a Forwarding Action should specify the set of
+        forwarding arguments required to execute the action, and value of M
+        bit.<a href="#section-4.4-5" class="pilcrow">¶</a></p>
+<div id="err-fi-tlv">
+<section id="section-4.4.1">
+          <h4 id="name-error-handling-4">
+<a href="#section-4.4.1" class="section-number selfRef">4.4.1. </a><a href="#name-error-handling-4" class="section-name selfRef">Error Handling</a>
+          </h4>
+<p id="section-4.4.1-1">If an Invalid value of 0 is received as FwdAction, the TLV is
+          ignored irrespective of "M bit", and continue to process rest of the
+          update..<a href="#section-4.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-2">If an unrecognized or unsupported FwdAction is received, the FI
+          TLV is considered Invalid.<a href="#section-4.4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-3">If a certain Forwarding Action is unable to be executed because
+          the set of required arguments are not available, the FI TLV is
+          considered Invalid. If a certain Forwarding Action is applied to an
+          incompatible NLRI, the FI TLV is considered Invalid.<a href="#section-4.4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-4">An Invalid FI TLV is handled based on value of M bit on it. If
+          the M bit is 0, the FI TLV is ignored, and remaining update continue
+          to be processed. If M bit is 1, the NFI TLV carrying this NFI is
+          considered Invalid, triggering the procedures in <a href="#err-nfi-tlv" class="auto internal xref">Section 4.3.1</a>.<a href="#section-4.4.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="fa-tlv">
+<section id="section-4.5">
+        <h3 id="name-forwarding-argument-tlv">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-forwarding-argument-tlv" class="section-name selfRef">Forwarding Argument TLV</a>
+        </h3>
+<p id="section-4.5-1">The Forwarding Argument TLV describes various parameters required
+        to execute a FwdAction.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<p id="section-4.5-2"></p>
+<span id="name-forwarding-argument-tlv-2"></span><div id="fa-tlv-fig">
+<figure id="figure-6">
+          <div class="alignLeft art-text artwork" id="section-4.5-3.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code            |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     |     Value                                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
+<a href="#name-forwarding-argument-tlv-2" class="selfRef">Forwarding Argument TLV</a>
+          </figcaption></figure>
+</div>
+<div class="alignLeft art-text artwork" id="section-4.5-4">
+<pre>
+ - F.A. Flags (1 octet)
+
+           0 1 2 3 4 5 6 7
+          +-+-+-+-+-+-+-+-+
+          |R R R R R E C M|
+          +-+-+-+-+-+-+-+-+
+
+           M: "Mandatory".
+              Value 1 indicates that this argument is mandatory for the Forwarding Action.
+              If this argument is not understood, the FI TLV containing it
+              is considered invalid.
+
+           C: "Cummulative".
+              Request nodes to accumulate value in re-advertised MNH.
+              By default Forwarding Arguments are not commulative, so C bit is 0
+              unless otherwise specified by the forwarding argument type.
+
+           E: "Egress Attached".
+              This bit is maintained when C bit is set to 1.
+              E bit is set to 1 if a cummulative argument is being added to a route
+              with empty AS-path.
+
+           R: "Reserved".
+              MUST be set to zero, SHOULD be ignored by receiver.
+
+
+ - F.A. Type Code (2 octets)
+
+    Type Code of Forwarding Argument. 0 is Reserved.
+
+ - Length (2 octets)
+
+    Length in bytes of Value field.
+
+</pre><a href="#section-4.5-4" class="pilcrow">¶</a>
+</div>
+<p id="section-4.5-5">The C bit is set to 1 on attributes that need to be accumulated
+        across BGP nexthop-self propagation hops. If a received MNH has a FA
+        with C bit 1, it MUST be set to 1 on the FA inserted in any advertised
+        MNH also. The value of the FA in the advertised MNH MAY be derived
+        from the value of the FA in the received MNH. The specific FA SHOULD
+        define the procedure on how the accumulation of value happens for the
+        specific type of FA.<a href="#section-4.5-5" class="pilcrow">¶</a></p>
+<p id="section-4.5-6">If a received MNH has a FA with C bit 1, and receiving speaker is
+        unable to perform the accumulation of FA, it MUST NOT include the FA
+        type in any advertised MNH.<a href="#section-4.5-6" class="pilcrow">¶</a></p>
+<p id="section-4.5-7">A FA that need to be accumulated end-to-end may want to know if the
+        cummulative value denotes the path until the Egress node. The E bit
+        denotes that the FA was originated by the Egress node that originated
+        this BGP route. The E bit is set to 1 by the node adding the FA, if
+        the AS-path on the route is empty. The E bit value received on a MNH
+        MUST be propagated on the MNH added to the re-advertisement. This
+        allows the Ingress node to see the E bit value set by the Egress node.<a href="#section-4.5-7" class="pilcrow">¶</a></p>
+<div id="err-fa-tlv">
+<section id="section-4.5.1">
+          <h4 id="name-error-handling-5">
+<a href="#section-4.5.1" class="section-number selfRef">4.5.1. </a><a href="#name-error-handling-5" class="section-name selfRef">Error Handling</a>
+          </h4>
+<p id="section-4.5.1-1">If an Invalid F.A. Type Code value of 0 is received, the TLV is
+          ignored irrespective of "M bit", and continue to process rest of the
+          update..<a href="#section-4.5.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.5.1-2">If an unrecognized F.A. Type Code is received, the FA TLV is
+          considered Invalid.<a href="#section-4.5.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.5.1-3">An Invalid FA TLV is handled based on value of M bit on it. If
+          the M bit is 0, the FA TLV is ignored, and remaining update continue
+          to be processed. If M bit is 1, the FI TLV carrying this FA is
+          considered Invalid, triggering the procedures in <a href="#err-fi-tlv" class="auto internal xref">Section 4.4.1</a>.<a href="#section-4.5.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<section id="section-4.6">
+        <h3 id="name-interaction-with-addpath">
+<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-interaction-with-addpath" class="section-name selfRef">Interaction with Addpath</a>
+        </h3>
+<p id="section-4.6-1"><span>[<a href="#ADDPATH-GUIDELINES" class="cite xref">ADDPATH-GUIDELINES</a>]</span> suggests the following:<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+<p id="section-4.6-2">"Diverse path: A BGP path associated with a different BGP next-hop
+        and BGP router than some other set of paths. The BGP router associated
+        with a path is inferred from the ORIGINATOR_ID attribute or, if there
+        is none, the BGP Identifier of the peer that advertised the path."<a href="#section-4.6-2" class="pilcrow">¶</a></p>
+<p id="section-4.6-3">When selecting "diverse paths" for ADD_PATH as specified above, the
+        MNH attribute should also be compared if it exists, to determine if
+        two routes have "different BGP next-hop".<a href="#section-4.6-3" class="pilcrow">¶</a></p>
+</section>
+<section id="section-4.7">
+        <h3 id="name-path-selection-consideratio">
+<a href="#section-4.7" class="section-number selfRef">4.7. </a><a href="#name-path-selection-consideratio" class="section-name selfRef">Path Selection Considerations</a>
+        </h3>
+<section id="section-4.7.1">
+          <h4 id="name-determining-igp-cost">
+<a href="#section-4.7.1" class="section-number selfRef">4.7.1. </a><a href="#name-determining-igp-cost" class="section-name selfRef">Determining IGP Cost</a>
+          </h4>
+<p id="section-4.7.1-1">While tie breaking in the path-selection as described in <span>[<a href="#RFC4271" class="cite xref">RFC4271</a>]</span>, 9.1.2.2. step (e) viz. the "IGP cost to
+          nexthop", consider the highest cost among the nexthop-legs present
+          in this attribute.<a href="#section-4.7.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.7.1-2">The IGP cost thus calculated is also used when constructing AIGP
+          TLV (<span>[<a href="#RFC7311" class="cite xref">RFC7311</a>]</span>)<a href="#section-4.7.1-2" class="pilcrow">¶</a></p>
+</section>
+</section>
+</section>
+<section id="section-5">
+      <h2 id="name-tlvs-defined-in-this-docume">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-tlvs-defined-in-this-docume" class="section-name selfRef">TLVs Defined In This Document</a>
+      </h2>
+<p id="section-5-1">This section describes the initial set of MNH TLVs, Forwarding
+      Instructions and Arguments that this document defines.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<div id="def-mnh-tlv">
+<section id="section-5.1">
+        <h3 id="name-mnh-tlvs">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-mnh-tlvs" class="section-name selfRef">MNH TLVs</a>
+        </h3>
+<p id="section-5.1-1">The type of MNH TLV describes how the forwarding information
+        carried in the MNH TLV is used.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1-2">
+<pre> This document defines the following MNH TLV types:
+
+  MNH Type Code        Meaning
+ --------------     -------------
+       0           Reserved
+       1           Primary forwarding path
+       2           Backup forwarding path
+
+
+ - Length
+    Length of Value portion in octects.
+
+ - Value
+    Value portion contains the NFI TLV.
+</pre><a href="#section-5.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-3"></p>
+<p id="section-5.1-4">Type codes 1 and 2 are applicable for upstream allocated prefixes,
+        example IP, Upstream MPLS labels, Flowspec routes.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-5">Note that usage of Type code 1 in a BGP route containing IP prefix
+        gives similar result as advertising the route with nexthop contained
+        in BGP path-attributes: Nexthop (code 3) or MP_REACH_NLRI (code
+        14).<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">Upstream allocation for MPLS routes is achieved by using mechanisms
+        explained in <span>[<a href="#MPLS-NAMESPACES" class="cite xref">MPLS-NAMESPACES</a>]</span>.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">If an invalid Type Code 0 is received, the TLV is ignored, and
+        continue to process rest of the update.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">If the received Type Code is incompatible for the prefix in BGP
+        NLRI, the TLV should be ignored.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<div id="upstr-prim">
+<section id="section-5.1.1">
+          <h4 id="name-primary-forwarding-path">
+<a href="#section-5.1.1" class="section-number selfRef">5.1.1. </a><a href="#name-primary-forwarding-path" class="section-name selfRef">Primary Forwarding Path</a>
+          </h4>
+<p id="section-5.1.1-1">This is a <span><a href="#mnh-tlv" class="internal xref">MNH TLV</a> (<a href="#mnh-tlv" class="auto internal xref">Section 4.2</a>)</span> with MNH Type
+          Code = 1, called "Primary Forwarding Path"<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.1-2">This TLV describes forwarding state to be programmed at receiving
+          speaker as Primary Path nexthop leg. This TLV is used with Upstream
+          allocated or global scope prefixes carried in BGP NLRI. Value part
+          of this TLV contains Nexthop Forwarding Information TLV.<a href="#section-5.1.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1.1-3">A BGP speaker uses the nexthop forwarding information received in
+          this TLV as a primary path nexthop leg when programming the route
+          for the NLRI prefix in its Forwarding table.<a href="#section-5.1.1-3" class="pilcrow">¶</a></p>
+<span id="name-primary-forwarding-path-tlv"></span><div id="prim-tlv-fig">
+<figure id="figure-7">
+            <div class="alignLeft art-text artwork" id="section-5.1.1-4.1">
+<pre>
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  MNH-TLV Flags|  MNH Type = 1 |          Length               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |               Nexthop Forwarding Information TLV              |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
+<a href="#name-primary-forwarding-path-tlv" class="selfRef">Primary forwarding path TLV</a>
+            </figcaption></figure>
+</div>
+</section>
+</div>
+<div id="upstr-bkp">
+<section id="section-5.1.2">
+          <h4 id="name-repair-forwarding-path">
+<a href="#section-5.1.2" class="section-number selfRef">5.1.2. </a><a href="#name-repair-forwarding-path" class="section-name selfRef">Repair Forwarding Path</a>
+          </h4>
+<p id="section-5.1.2-1">This is a <span><a href="#mnh-tlv" class="internal xref">MNH TLV</a> (<a href="#mnh-tlv" class="auto internal xref">Section 4.2</a>)</span> with MNH Type
+          Code = 2, called "Repair Forwarding Path"<a href="#section-5.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-2">This TLV describes forwarding state to be programmed during
+          traffic repair at receiving speaker. i.e. This TLV is used to
+          program a backup path. This TLV is used with Upstream allocated
+          prefixes or global scoped prefixes. Value part contains Nexthop
+          Forwarding Information TLV.<a href="#section-5.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-3">Signaling a different nexthop for use as backup path is desirable
+          in some labeled forwarding scenarios, where two multihomed edge
+          devices use each other as backup path to protect traffic when
+          primary path fails.<a href="#section-5.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-4">This is required to avoid label advertisement oscillation between
+          the multihomed PEs when they implement per-nexthop label allocation
+          mode.<a href="#section-5.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-5.1.2-5">The label advertised by a PE1 for primary path advertisement is
+          allocated/forwarded using external paths as primary leg and
+          backup-path label from other multihomed PE2 as backup-path label.
+          Such that primary-path label allocation at PE1 is not a function of
+          the primary-path label advertised by PE2. Thus the primary path
+          label remains stable at a PE and does not change when a new primary
+          path label is received from the other multihomed PE. This prevents
+          the label oscillation problem.<a href="#section-5.1.2-5" class="pilcrow">¶</a></p>
+<span id="name-repair-forwarding-path-tlv"></span><div id="bkp-tlv-fig">
+<figure id="figure-8">
+            <div class="alignLeft art-text artwork" id="section-5.1.2-6.1">
+<pre>
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  MNH-TLV Flags|  MNH Type = 2 |          Length               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |               Nexthop Forwarding Information TLV              |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
+<a href="#name-repair-forwarding-path-tlv" class="selfRef">Repair forwarding path TLV</a>
+            </figcaption></figure>
+</div>
+<p id="section-5.1.2-7">The backup path label allocated and advertised by a PE is a
+          function of only the primary path. E.g. path to the CE device. So
+          this label value does not change when a new label is received from
+          the other multihomed PE<a href="#section-5.1.2-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="def-fi-tlv">
+<section id="section-5.2">
+        <h3 id="name-forwarding-actions-in-fi-tl">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-forwarding-actions-in-fi-tl" class="section-name selfRef">Forwarding Actions in FI TLV</a>
+        </h3>
+<p id="section-5.2-1">Each Forwarding Instruction TLV describes a Nexthop Leg. It
+        expresses a "Forwarding Action" (FwdAction) along with arguments
+        required to complete the action. The type of actions defined by this
+        TLV are given below. The arguments are denoted by "Forwarding Argument
+        TLVs". The Forwarding Argument TLVs takes appropriate values based on
+        the FwdAction.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">Each FwdAction should note the Arguments needed to complete the
+        action. Any extranous arguments should be ignored. If the minimum set
+        of arguments required to complete an action is not received, the
+        Forwarding Instruction TLV should be ignored. Appropriate logging and
+        diagnostic info MAY be provided by an implementation to help
+        troubleshoot such scenarios.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.2-3">
+<pre>
+Following Forwarding Actions are defined by this document.
+
+ FwdAction         Meaning
+ ---------      -------------
+       0        Reserved
+       1        Forward
+       2        Pop-And-Forward
+       3        Swap
+       4        Push
+       5        Pop-And-Lookup
+       6        Replicate
+
+   Forwarding Instruction TLV with unknown FwdAction should be ignored, skipped
+   and rest of the attribute processed; gracefully handling the error. The event
+   may be appropriately logged for diagnosis.
+
+ - Length (2 octets)
+
+    Length in octets, of all Forwarding Argument TLVs.
+
+</pre><a href="#section-5.2-3" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-4"></p>
+<p id="section-5.2-5">Meaning of most of the above FwdAction semantics is well
+        understood. FwdAction 1 is applicable for both IP and MPLS routes.
+        FwdActions 2-5 are applicable for encapsulated payloads (like MPLS)
+        only. FwdActions 1, 6 are applicable for Flowspec routes for Redirect
+        and Mirror actions. FwdAction 6 can also be used to indicate multicast
+        replication like functionality.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
+<p id="section-5.2-6">The "Forward" action means forward the IP/MPLS packet with the
+        destination prefix (IP-dest-addr/MPLS-label) value unchanged. For IP
+        routes, this is the forwarding-action given for next-hop addresses
+        contained in BGP path-attributes: Nexthop (code 3) or MP_REACH_NLRI
+        (code 14). For MPLS routes, usage of this action is equivalent to SWAP
+        with same label-value; one such usage is explained in <span>[<a href="#MPLS-NAMESPACES" class="cite xref">MPLS-NAMESPACES</a>]</span> when Upstream-label-allocation is in
+        use.<a href="#section-5.2-6" class="pilcrow">¶</a></p>
+<p id="section-5.2-7">The "Pop-And-Forward" action means Pop the payload header (e.g.
+        MPLS-label) and forward the payload towards the Nexthop IP-address
+        specified in the Endpoint Id TLV, using appropriate encapsulation to
+        reach the Nexthop.<a href="#section-5.2-7" class="pilcrow">¶</a></p>
+<p id="section-5.2-8">When applied to MPLS packet, the "Pop-And-Lookup" action may result
+        in a MPLS-lookup or an upper-layer header (like IPv4, IPv6) lookup,
+        depending on whether the label that was popped was the bottom of stack
+        label.<a href="#section-5.2-8" class="pilcrow">¶</a></p>
+<p id="section-5.2-9">If an incompatible FwdAction is received for a prefix-type, or an
+        unsupported FwdAction is received, it is considered a semantic-error
+        and MUST be dealt with as explained in "Error handling procedures"
+        section.<a href="#section-5.2-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="def-fa-tlv">
+<section id="section-5.3">
+        <h3 id="name-forwarding-argument-tlvs">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-forwarding-argument-tlvs" class="section-name selfRef">Forwarding Argument TLVs</a>
+        </h3>
+<p id="section-5.3-1">The Forwarding Argument TLV describes various parameters required
+        to execute a FwdAction.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2"></p>
+<div class="alignLeft art-text artwork" id="section-5.3-3">
+<pre>
+Following types of Forwarding Argument are defined by this document.
+
+  F.A. Type Code  Meaning
+  -------------  ---------
+     0           Reserved
+     1           Endpoint Identifier
+     2           Path Constraints
+     3           Payload encapsulation info signaling
+     4           Endpoint attributes advertisement
+
+ - Length (2 octets)
+
+    Length in bytes of Value field.
+
+</pre><a href="#section-5.3-3" class="pilcrow">¶</a>
+</div>
+<div id="ep-tlv">
+<section id="section-5.3.1">
+          <h4 id="name-endpoint-identifier">
+<a href="#section-5.3.1" class="section-number selfRef">5.3.1. </a><a href="#name-endpoint-identifier" class="section-name selfRef">Endpoint Identifier</a>
+          </h4>
+<p id="section-5.3.1-1">This is a <span><a href="#fa-tlv" class="internal xref">Forwarding Argument</a> (<a href="#fa-tlv" class="auto internal xref">Section 4.5</a>)</span> with
+          F.A. Type Code = 1. It identifies an Endpoint of certain type.<a href="#section-5.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.3.1-2"></p>
+<span id="name-endpoint-identifier-2"></span><div id="ep-tlv-fig">
+<figure id="figure-9">
+            <div class="alignLeft art-text artwork" id="section-5.3.1-3.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code =1         |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Endpoint Type |  Endpoint Len | Endpoint Value|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                  Endpoint Value                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-9" class="selfRef">Figure 9</a>:
+<a href="#name-endpoint-identifier-2" class="selfRef">Endpoint Identifier</a>
+            </figcaption></figure>
+</div>
+<div class="alignLeft art-text artwork" id="section-5.3.1-4">
+<pre>
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+ - Length (2 octets)
+    Length in bytes of Value field.
+
+
+  Endpoint Type   Value                    Len (octets)
+  -------------  ---------                ---------------------
+     0           Reserved
+     1           IPv4 Address                4
+     2           IPv6 Address                16
+     3           MPLS Label (Upstream        4
+                            allocated or
+                            Global scope)
+     4           Fwd Context RD              8
+     5           Fwd Context RT              8
+
+ - Endpoint Len (1 octet)
+
+    Length in bytes of Endpoint Value field.
+
+</pre><a href="#section-5.3.1-4" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="constrain-tlv">
+<section id="section-5.3.2">
+          <h4 id="name-path-constraints">
+<a href="#section-5.3.2" class="section-number selfRef">5.3.2. </a><a href="#name-path-constraints" class="section-name selfRef">Path Constraints</a>
+          </h4>
+<p id="section-5.3.2-1">This is a <span><a href="#fa-tlv" class="internal xref">Forwarding Argument</a> (<a href="#fa-tlv" class="auto internal xref">Section 4.5</a>)</span> with
+          F.A. Type Code = 2. It defines Constraints for Path to the
+          Endpoint..<a href="#section-5.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.3.2-2"></p>
+<span id="name-path-constraints-2"></span><div id="constrain-tlv-fig">
+<figure id="figure-10">
+            <div class="alignLeft art-text artwork" id="section-5.3.2-3.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 2        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | ConstrainType | Constrain Len | ConstrainValue|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                  ConstrainValue                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-10" class="selfRef">Figure 10</a>:
+<a href="#name-path-constraints-2" class="selfRef">Path Constraints</a>
+            </figcaption></figure>
+</div>
+<div class="alignLeft art-text artwork" id="section-5.3.2-4">
+<pre>
+
+   - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+   - Length (2 octets)
+       Length in bytes of Value field.
+
+  ConstrainType             Value                Len (octets)
+  -------------  -------------------------    ---------------------
+     0           Reserved
+     1           Proximity check                 2
+     2           Transport Class ID (Color)      4
+     3           Load balance factor             2
+
+  - Constrain Len (1 octet)
+
+    Length in bytes of Constrain Value field.
+
+   - Proximity check Flags (2 octets)
+        Flags describing whether the nexthop endpoint is expected to be single hop
+        away, or multihop away. Format of flags is described in next section.
+
+   - Transport Class ID (Color):
+
+    This is a 32 bit identifier, associated with the Nexthop address.
+    The Nexthop IP-address specified in "Endpoint Identifier" TLVs
+    are resolved over tunnels of this color.
+    Defined in [BGP-CT] [draft-kaliraj-idr-bgp-classful-transport-planes]
+
+   - Load balance factor (2 octets)
+          Balance Percentage
+
+</pre><a href="#section-5.3.2-4" class="pilcrow">¶</a>
+</div>
+<div id="proxim-tlv">
+<section id="section-5.3.2.1">
+            <h5 id="name-proximity-check">
+<a href="#section-5.3.2.1" class="section-number selfRef">5.3.2.1. </a><a href="#name-proximity-check" class="section-name selfRef">Proximity Check</a>
+            </h5>
+<p id="section-5.3.2.1-1">Usually EBGP singlehop received routes are expected to be one
+            hop away, directly connected. And IBGP received routes are
+            expected to be multihop away. Implementations today provide
+            configuring exceptions to this rule.<a href="#section-5.3.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.3.2.1-2">The 'expected proximity' of the Nexthop can be signaled to the
+            receiver using the Proximity check flags. Such that irrespective
+            of whether the route is received from IBGP/EBGP peer, it can be
+            treated as a single-hop away or multihop away nexthop.<a href="#section-5.3.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.3.2.1-3">The format of the Proximity check Sub-TLV is as follows:<a href="#section-5.3.2.1-3" class="pilcrow">¶</a></p>
+<span id="name-proximity-check-constrain"></span><div id="proxim-tlv-fig">
+<figure id="figure-11">
+              <div class="alignLeft art-text artwork" id="section-5.3.2.1-4.1">
+<pre>
+   0                   1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |  F.A. Flags   |     F.A. Type Code = 2        |  Length       |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |    Length     |ConstrainType=1|  Len = 2      |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |       Proximity Check Flags   |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Proximity check Flags (2 octets)
+
+           0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+          |S M R R R R R R R R R R R R R R|
+          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+           S: Restrict to Singlehop path.
+           M: Expect Multihop path.
+           R: Reserved. MUST be set to zero, SHOULD be ignored by receiver.
+
+</pre>
+</div>
+<figcaption><a href="#figure-11" class="selfRef">Figure 11</a>:
+<a href="#name-proximity-check-constrain" class="selfRef">Proximity check constrain</a>
+              </figcaption></figure>
+</div>
+<p id="section-5.3.2.1-5">This TLV would be valid with Forwarding Instructions TLV with
+            FwdAction of Forward, Pop-And-Forward, Swap or Push.<a href="#section-5.3.2.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.3.2.1-6">When S bit is set, receiver considers the nexthop valid only if
+            it is directly connected to the receiver.<a href="#section-5.3.2.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.3.2.1-7">When M bit is set, receiver assumes that the nexthop can be
+            multiple hops away, and resolves the path to the nexthop via
+            another route.<a href="#section-5.3.2.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.3.2.1-8">When both S and M bits are set, M bit behavior takes
+            precedence. When both S and M bits are Clear, the current behavior
+            of deriving proximity from peer type (EBGP is singlehop, IBGP is
+            multihop) is followed.<a href="#section-5.3.2.1-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="tc-tlv">
+<section id="section-5.3.2.2">
+            <h5 id="name-transport-class-id-color">
+<a href="#section-5.3.2.2" class="section-number selfRef">5.3.2.2. </a><a href="#name-transport-class-id-color" class="section-name selfRef">Transport Class ID (Color)</a>
+            </h5>
+<p id="section-5.3.2.2-1">The Nexthop can be associated with a Transport Class, so as to
+            resolve a path that satisfies required Transport tunnel
+            characteristics. Transport Class is defined in <span>[<a href="#BGP-CT" class="cite xref">BGP-CT</a>]</span><a href="#section-5.3.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.3.2.2-2">Transport Class is a per-nexthop scoped attribute. Without MNH,
+            the Transport class is applied to the nexthop IP-address encoded
+            in the BGP-Nexthop attribute (code 3), or inside the MP_REACH_NLRI
+            attribute (code 14). With MNH, the Transport Class can be
+            specified per Nexthop-Leg (Forwarding Instruction TLV). It is
+            applied to the IP-address encoded in the Endpoint Identifier TLV
+            of type "IPv4 Address", "IPv6 Address" , "MPLS Label (Upstream
+            allocated or Global scope)".<a href="#section-5.3.2.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.3.2.2-3">The format of the Transport Class ID Sub-TLV is as follows:<a href="#section-5.3.2.2-3" class="pilcrow">¶</a></p>
+<span id="name-transport-class-id-color-2"></span><div id="tc-tlv-fig">
+<figure id="figure-12">
+              <div class="alignLeft art-text artwork" id="section-5.3.2.2-4.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 2        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     |ConstrainType=2|  Len = 4      | Transport..   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  .. Class ID (4 bytes)        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Transport Class ID (Color):
+    This is a 32 bit identifier, associated with the Nexthop address.
+    The Nexthop specified in Endpoint Identifier TLVs
+    are resolved over tunnels of this color.
+  Defined in [BGP-CT] [draft-kaliraj-idr-bgp-classful-transport-planes]
+</pre>
+</div>
+<figcaption><a href="#figure-12" class="selfRef">Figure 12</a>:
+<a href="#name-transport-class-id-color-2" class="selfRef">Transport Class ID (Color)</a>
+              </figcaption></figure>
+</div>
+<p id="section-5.3.2.2-5"></p>
+<p id="section-5.3.2.2-6">This TLV would be valid with Forwarding Instructions TLV with
+            FwdAction of Forward, Swap or Push.<a href="#section-5.3.2.2-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="lb-perc">
+<section id="section-5.3.2.3">
+            <h5 id="name-load-balance-factor">
+<a href="#section-5.3.2.3" class="section-number selfRef">5.3.2.3. </a><a href="#name-load-balance-factor" class="section-name selfRef">Load Balance Factor</a>
+            </h5>
+<p id="section-5.3.2.3-1"></p>
+<span id="name-load-balance-factor-2"></span><div id="lb-perc-tlv-fig">
+<figure id="figure-13">
+              <div class="alignLeft art-text artwork" id="section-5.3.2.3-2.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 2        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     |ConstrainType=3|  Len = 2      |   Balance..   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|.. Percentage  |
++-+-+-+-+-+-+-+-+
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+ - Length (2 octets)
+       Length in bytes of Value field.
+
+ - Len (1 octet)
+    Length of the Constrain Value field.
+
+ - Balance Percentage:
+    This is the explicit "balance percentage" requested by the sender,
+    for unequal load-balancing over these Nexthop-Descriptor-TLV legs.
+    This balance percentage would override the implicit
+    balance-percentage calculated using "Bandwidth" attribute
+    sub-TLV.
+</pre>
+</div>
+<figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
+<a href="#name-load-balance-factor-2" class="selfRef">Load Balance Factor</a>
+              </figcaption></figure>
+</div>
+<p id="section-5.3.2.3-3"></p>
+<p id="section-5.3.2.3-4">This sub-TLV would be valid with Forwarding Instructions TLV
+            with FwdAction of Forward, Swap or Push.<a href="#section-5.3.2.3-4" class="pilcrow">¶</a></p>
+<p id="section-5.3.2.3-5">This is the explicit "balance percentage" requested by the
+            sender, for unequal load-balancing over these
+            Nexthop-Descriptor-TLV legs. This balance percentage would
+            override the implicit balance-percentage calculated using
+            "Bandwidth" attribute sub-TLV<a href="#section-5.3.2.3-5" class="pilcrow">¶</a></p>
+<p id="section-5.3.2.3-6">When the sum of "balance percentage" on the nexthop legs does
+            not equal 100, it is scaled up or down to match 100. The
+            individual balance percentages in each nexthop leg are also scaled
+            up or down proportionally to determine the effective balance
+            percentage per nexthop leg.<a href="#section-5.3.2.3-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="encap-tlv">
+<section id="section-5.3.3">
+          <h4 id="name-payload-encapsulation-info">
+<a href="#section-5.3.3" class="section-number selfRef">5.3.3. </a><a href="#name-payload-encapsulation-info" class="section-name selfRef">Payload Encapsulation Info</a>
+          </h4>
+<p id="section-5.3.3-1">This is a <span><a href="#fa-tlv" class="internal xref">Forwarding Argument</a> (<a href="#fa-tlv" class="auto internal xref">Section 4.5</a>)</span> with
+          F.A. Type Code = 3. It defines Payload Encapsulation
+          Information.<a href="#section-5.3.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3.3-2"></p>
+<span id="name-payload-encapsulation-info-2"></span><div id="encap-tlv-fig">
+<figure id="figure-14">
+            <div class="alignLeft art-text artwork" id="section-5.3.3-3.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code =3         |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Encap Type  |         Encap Len               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Encap Value                                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-14" class="selfRef">Figure 14</a>:
+<a href="#name-payload-encapsulation-info-2" class="selfRef">Payload Encapsulation Info</a>
+            </figcaption></figure>
+</div>
+<div class="alignLeft art-text artwork" id="section-5.3.3-4">
+<pre>
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+ - Length (2 octets)
+       Length in bytes of Value field.
+
+   Endcap Type        Value
+  -------------  --------------
+     0           Reserved
+     1           MPLS Label Info
+     2           SR MPLS label Index Info
+     3           SRv6 SID info
+     4           DSCP code point
+
+ - Encap Len (2 octets)
+
+    Length in octets of Encap Value field.
+
+</pre><a href="#section-5.3.3-4" class="pilcrow">¶</a>
+</div>
+<section id="section-5.3.3.1">
+            <h5 id="name-mpls-label-info">
+<a href="#section-5.3.3.1" class="section-number selfRef">5.3.3.1. </a><a href="#name-mpls-label-info" class="section-name selfRef">MPLS Label Info</a>
+            </h5>
+<span id="name-mpls-label-info-2"></span><div id="mpls-tlv-fig">
+<figure id="figure-15">
+              <div class="alignLeft art-text artwork" id="section-5.3.3.1-1.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code =3         |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Encap Type=1 |          Encap Len             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      L.V. Flags (2 bytes)    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| MPLS Label (20 bits) |Rsrv |S~
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~ MPLS Label (20 bits) |Rsrv |S|
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-15" class="selfRef">Figure 15</a>:
+<a href="#name-mpls-label-info-2" class="selfRef">MPLS Label Info</a>
+              </figcaption></figure>
+</div>
+<p id="section-5.3.3.1-2" class="keepWithNext"></p>
+<div class="alignLeft art-text artwork" id="section-5.3.3.1-3">
+<pre>
+
+  - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Encap Type
+     = 1, to signify MPLS Label Info.
+
+  - Encap Len (2 octets)
+       Length in bytes of following Encap Value field.
+
+  - L.V. Flags (2 octets):
+
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |E R R R R R R R R R R R R R R R|
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+       E: ELC bit. Indicates if this egress NH is Entropy Label Capable.
+             1 means the Entropy Label capable.
+             0 means not capable to handle Entropy Label.
+
+       R: Reserved. MUST be set to zero, SHOULD be ignored by receiver.
+
+  - MPLS Label, Rsrv, S bit.
+      20 bit MPLS Label stack encoded as in RFC 8277.
+      S bit set on last label in label stack.
+
+
+</pre><a href="#section-5.3.3.1-3" class="pilcrow">¶</a>
+</div>
+</section>
+<section id="section-5.3.3.2">
+            <h5 id="name-sr-mpls-label-index-info">
+<a href="#section-5.3.3.2" class="section-number selfRef">5.3.3.2. </a><a href="#name-sr-mpls-label-index-info" class="section-name selfRef">SR MPLS Label Index Info</a>
+            </h5>
+<span id="name-sr-mpls-label-index-info-2"></span><div id="sr-mpls-idx-tlv-fig">
+<figure id="figure-16">
+              <div class="alignLeft art-text artwork" id="section-5.3.3.2-1.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code =3         |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Encap Type=2 |            Encap Len           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   RESERVED    |       LI Flags                |    Label ..   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                ..Index                        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-16" class="selfRef">Figure 16</a>:
+<a href="#name-sr-mpls-label-index-info-2" class="selfRef">SR MPLS Label Index Info</a>
+              </figcaption></figure>
+</div>
+<p id="section-5.3.3.2-2" class="keepWithNext"></p>
+<div class="alignLeft art-text artwork" id="section-5.3.3.2-3">
+<pre>
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Encap Type
+     = 2, to signify SR MPLS SID Info.
+
+  - Encap Len (2 octets)
+       Length in bytes of following Encap Value field.
+
+  Rest of the value portion is encoded as specified in RFC-8669 sec 3.1.
+
+  - RESERVED:  8-bit field. MUST be set to zero, SHOULD be ignored by receiver.
+
+  - LI Flags:  16 bits of flags. None defined. MUST be set to zero, SHOULD be ignored by receiver.
+
+  - Label Index:
+      32-bit value representing the index value in the SRGB space.
+
+</pre><a href="#section-5.3.3.2-3" class="pilcrow">¶</a>
+</div>
+</section>
+<section id="section-5.3.3.3">
+            <h5 id="name-srv6-sid-info">
+<a href="#section-5.3.3.3" class="section-number selfRef">5.3.3.3. </a><a href="#name-srv6-sid-info" class="section-name selfRef">SRv6 SID Info</a>
+            </h5>
+<span id="name-srv6-sid-info-2"></span><div id="srv6-sid-tlv-fig">
+<figure id="figure-17">
+              <div class="alignLeft art-text artwork" id="section-5.3.3.3-1.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code =3         |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Encap Type=3 |           Encap Len            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         .. SRv6 SID Info (variable)                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-17" class="selfRef">Figure 17</a>:
+<a href="#name-srv6-sid-info-2" class="selfRef">SRv6 SID Info</a>
+              </figcaption></figure>
+</div>
+<p id="section-5.3.3.3-2" class="keepWithNext"></p>
+<div class="alignLeft art-text artwork" id="section-5.3.3.3-3">
+<pre>  - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Encap Type
+          = 3, to signify SRv6 SID Info.
+
+  - Encap Len (2 octets)
+       Length in bytes of following Encap Value field.
+
+  - SRv6 SID Info:
+        SRv6 SID Information, as specified in RFC-9252 sec 3.1.
+
+</pre><a href="#section-5.3.3.3-3" class="pilcrow">¶</a>
+</div>
+</section>
+<section id="section-5.3.3.4">
+            <h5 id="name-dscp">
+<a href="#section-5.3.3.4" class="section-number selfRef">5.3.3.4. </a><a href="#name-dscp" class="section-name selfRef">DSCP</a>
+            </h5>
+<span id="name-dscp-2"></span><div id="dscp-tlv-fig">
+<figure id="figure-18">
+              <div class="alignLeft art-text artwork" id="section-5.3.3.4-1.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 3        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Encap Type=4 |           Encap Len            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|DSCP code point|
++-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-18" class="selfRef">Figure 18</a>:
+<a href="#name-dscp-2" class="selfRef">DSCP</a>
+              </figcaption></figure>
+</div>
+<p id="section-5.3.3.4-2" class="keepWithNext"></p>
+<div class="alignLeft art-text artwork" id="section-5.3.3.4-3">
+<pre>  - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+  - Length (2 octets)
+       Length in bytes of Value field.
+
+  - Encap Type
+          = 4, to signify DSCP code point.
+
+  - Encap Len (2 octets)
+      = 1, Length in bytes of following Encap Value field.
+
+  - DSCP code point:
+        DS Field, as specified in RFC-2474 sec 3.
+
+</pre><a href="#section-5.3.3.4-3" class="pilcrow">¶</a>
+</div>
+</section>
+</section>
+</div>
+<div id="epattr-tlv">
+<section id="section-5.3.4">
+          <h4 id="name-endpoint-attributes">
+<a href="#section-5.3.4" class="section-number selfRef">5.3.4. </a><a href="#name-endpoint-attributes" class="section-name selfRef">Endpoint Attributes</a>
+          </h4>
+<p id="section-5.3.4-1">This is a <span><a href="#fa-tlv" class="internal xref">Forwarding Argument</a> (<a href="#fa-tlv" class="auto internal xref">Section 4.5</a>)</span> with
+          F.A. Type Code = 4. It defines Attributes of an Endpoint.<a href="#section-5.3.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.3.4-2"></p>
+<span id="name-endpoint-attributes-2"></span><div id="epattr-tlv-fig">
+<figure id="figure-19">
+            <div class="alignLeft art-text artwork" id="section-5.3.4-3.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 4        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Attrib Type  |    Attr Len    |  Attr  Value  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                    Attr Value                                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+</pre>
+</div>
+<figcaption><a href="#figure-19" class="selfRef">Figure 19</a>:
+<a href="#name-endpoint-attributes-2" class="selfRef">Endpoint attributes</a>
+            </figcaption></figure>
+</div>
+<div class="alignLeft art-text artwork" id="section-5.3.4-4">
+<pre>
+
+   EP Attrib Type      Attrib Value               Attrib Len (octets)
+  ----------------  ------------------            ---------------------
+     0               None
+     1               Endpoint Bandwidth               8
+     2               Accumuated Metric                Variable
+
+</pre><a href="#section-5.3.4-4" class="pilcrow">¶</a>
+</div>
+<div id="ep-bw">
+<section id="section-5.3.4.1">
+            <h5 id="name-endpoint-bandwidth">
+<a href="#section-5.3.4.1" class="section-number selfRef">5.3.4.1. </a><a href="#name-endpoint-bandwidth" class="section-name selfRef">Endpoint Bandwidth</a>
+            </h5>
+<p id="section-5.3.4.1-1"></p>
+<span id="name-endpoint-bandwidth-2"></span><div id="ep-bw-tlv-fig">
+<figure id="figure-20">
+              <div class="alignLeft art-text artwork" id="section-5.3.4.1-2.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 4        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Attrib Type 1|    Attr Len=8  |  Attr  Value  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Bandwidth (8 octets)                        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Bandwidth (contd.)                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+- Len (2 octets)
+    Length in bytes of remaining portion of SubTLV.
+
+- Bandwidth
+    The bandwidth to the endpoint expressed as 8 octets,
+    units being bits per second.
+</pre>
+</div>
+<figcaption><a href="#figure-20" class="selfRef">Figure 20</a>:
+<a href="#name-endpoint-bandwidth-2" class="selfRef">Endpoint Bandwidth</a>
+              </figcaption></figure>
+</div>
+<p id="section-5.3.4.1-3"></p>
+<p id="section-5.3.4.1-4">This sub-TLV would be valid with Forwarding Instruction TLV
+            with FwdAction of Forward, Swap or Push.<a href="#section-5.3.4.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="ep-ametric">
+<section id="section-5.3.4.2">
+            <h5 id="name-accumulated-metric-to-endpo">
+<a href="#section-5.3.4.2" class="section-number selfRef">5.3.4.2. </a><a href="#name-accumulated-metric-to-endpo" class="section-name selfRef">Accumulated Metric to Endpoint</a>
+            </h5>
+<p id="section-5.3.4.2-1"></p>
+<span id="name-accumulated-metric-to-endpoi"></span><div id="ep-ametric-tlv-fig">
+<figure id="figure-21">
+              <div class="alignLeft art-text artwork" id="section-5.3.4.2-2.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  F.A. Flags   |     F.A. Type Code = 4        |  Length       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Length     | Attrib Type 2|    Metric Type |  Metric Len   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                   Metric Value (variable)                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+ - F.A. Flags (1 octet)
+     As defined in Forwarding Argument TLV.
+
+        C: Cummulative bit is set to 1 by originator of this argument.
+
+
+- Len (2 octets)
+    Length in bytes of remaining portion of SubTLV.
+
+- Metric Type: Type from "IGP Metric-Type" IANA registry under IGP Parameters
+   Following types are defined by this document to be accumulated:
+      0 IGP Metric
+      1 Min Unidirectional Link Delay as defined in [RFC8570, Section 4.2]
+
+- Metric Len: Length in octets of Metric Value field.
+      IGP Metric: 4
+      Min Unidirectional Link Delay: 4
+
+- Metric Value:
+      IGP Metric: 4 octet Accumulated IGP cost
+      Min Unidirectional Link Delay: 4 octet Accumulated min delay in microseconds.
+</pre>
+</div>
+<figcaption><a href="#figure-21" class="selfRef">Figure 21</a>:
+<a href="#name-accumulated-metric-to-endpoi" class="selfRef">Accumulated Metric to Endpoint</a>
+              </figcaption></figure>
+</div>
+<p id="section-5.3.4.2-3"></p>
+<p id="section-5.3.4.2-4">This sub-TLV would be valid with Forwarding Instruction TLV
+            with FwdAction of Forward, Swap or Push.<a href="#section-5.3.4.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+</section>
+<section id="section-6">
+      <h2 id="name-scaling-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-scaling-considerations" class="section-name selfRef">Scaling Considerations</a>
+      </h2>
+<p id="section-6-1">The MNH attribute allows receiving multiple nexthops on the same BGP
+      session. This flexibility also opens up the possibility that a peer can
+      send large number of multipath (ECMP/UCMP/FRR) nexthops that may
+      overwhelm the local system's forwarding plane. Prefix-limit based checks
+      will not avoid this situation.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">To keep the scaling limits under check, a BGP speaker MAY keep
+      account of number of unique multipath nexthops that are received from a
+      BGP peer, and impose a configurable max-limit on that. This is
+      especially useful for EBGP peers.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-3">A good scaling property of conveying multipath nexthops using the MNH
+      attribute with N nexthop legs on one BGP session, as against BGP routes
+      on N BGP sessions is that, it limits the amount of transitionary
+      multipath combinatorial state in the latter model. Because the final
+      multipath state is conveyed by one route update in deterministic manner,
+      there is no transitionary multipath combinatorial explosion created
+      during establishment of N sessions.<a href="#section-6-3" class="pilcrow">¶</a></p>
+</section>
+<div id="IANA">
+<section id="section-7">
+      <h2 id="name-iana-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-7-1">This document makes request to IANA to allocate the following codes
+      in BGP attributes registry.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<section id="section-7.1">
+        <h3 id="name-bgp-path-attributes">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-bgp-path-attributes" class="section-name selfRef">BGP Path Attributes</a>
+        </h3>
+<p id="section-7.1-1">A new BGP attribute code TBD for "BGP MultiNexthop Attribute
+        (MULTI_NEXT_HOP)", in "BGP Path Attributes" registry.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+</section>
+<section id="section-7.2">
+        <h3 id="name-capability-codes">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-capability-codes" class="section-name selfRef">Capability Codes</a>
+        </h3>
+<p id="section-7.2-1">This document makes request to IANA to allocate a BGP capability
+        code TBD for "BGP MultiNexthop Attribute (MULTI_NEXT_HOP), in
+        "Capability Codes" registry.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+</section>
+<section id="section-7.3">
+        <h3 id="name-bgp-multinexthop-attribute">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-bgp-multinexthop-attribute" class="section-name selfRef">BGP MultiNextHop Attribute</a>
+        </h3>
+<p id="section-7.3-1">This document requests IANA to create a new registry group for
+        MultiNextHop attribute, and the following registries in it.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<section id="section-7.3.1">
+          <h4 id="name-multinexthop-mnh-tlv-types">
+<a href="#section-7.3.1" class="section-number selfRef">7.3.1. </a><a href="#name-multinexthop-mnh-tlv-types" class="section-name selfRef">MultiNextHop (MNH) TLV Types</a>
+          </h4>
+<p id="section-7.3.1-1">This is a Registry for Type codes in <a href="#mnh-tlv" class="auto internal xref">Section 4.2</a>
+          "MULTI_NEXT_HOP TLV"<a href="#section-7.3.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.3.1-2">
+<pre>
+   Under "Border Gateway Protocol (BGP) Parameters",
+
+     Registry Group: BGP MultiNextHop Attribute
+
+     Registry Name: MultiNexthop (MNH) TLV Types
+
+          MNH Type Code        Meaning
+         --------------     -------------
+           0                Reserved
+           1                Primary forwarding path
+           2                Backup forwarding path
+           3-254            Unassigned
+           255              Reserved
+
+     Reference: This document.
+
+     Registration Procedure(s)
+         Future assignments are to be made using either the Standards Action
+         process defined in [RFC2434], or the Early IANA Allocation process
+         defined in [RFC4020].
+
+</pre><a href="#section-7.3.1-2" class="pilcrow">¶</a>
+</div>
+</section>
+<section id="section-7.3.2">
+          <h4 id="name-forwarding-action-types">
+<a href="#section-7.3.2" class="section-number selfRef">7.3.2. </a><a href="#name-forwarding-action-types" class="section-name selfRef">Forwarding Action Types</a>
+          </h4>
+<p id="section-7.3.2-1">This is a Registry for Type codes in <a href="#fi-tlv" class="auto internal xref">Section 4.4</a>
+          "Forwarding Instruction TLV"<a href="#section-7.3.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.3.2-2">
+<pre>
+    Under "Border Gateway Protocol (BGP) Parameters",
+
+      Registry Group: BGP MultiNextHop Attribute
+
+      Registry Name: Forwarding Action Types
+
+            FwdAction         Meaning
+            ---------      -------------
+             0             Reserved
+             1             Forward
+             2             Pop-And-Forward
+             3             Swap
+             4             Push
+             5             Pop-And-Lookup
+             6             Replicate
+             7-254         Unassigned
+             255           Reserved
+
+       Reference: This document.
+
+       Registration Procedure(s)
+           Future assignments are to be made using either the Standards Action
+           process defined in [RFC2434], or the Early IANA Allocation process
+           defined in [RFC4020].
+</pre><a href="#section-7.3.2-2" class="pilcrow">¶</a>
+</div>
+</section>
+<section id="section-7.3.3">
+          <h4 id="name-forwarding-argument-types">
+<a href="#section-7.3.3" class="section-number selfRef">7.3.3. </a><a href="#name-forwarding-argument-types" class="section-name selfRef">Forwarding Argument Types</a>
+          </h4>
+<p id="section-7.3.3-1">This is a Registry for Type codes in <a href="#fa-tlv" class="auto internal xref">Section 4.5</a>
+          "Forwarding Arguments TLV"<a href="#section-7.3.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.3.3-2">
+<pre>
+
+    Under "Border Gateway Protocol (BGP) Parameters",
+
+      Registry Group: BGP MultiNextHop Attribute
+
+      Registry Name: Forwarding Argument Types
+
+         F.A. Type Code      Meaning
+         ---------------   ------------------
+            0              Reserved
+            1              Endpoint Identifier
+            2              Path Constraints
+            3              Payload encapsulation info signaling
+            4              Endpoint attributes advertisement
+            5-65534        Unassigned
+            65535          Reserved
+
+      Reference: This document.
+
+      Registration Procedure(s)
+          Future assignments are to be made using either the Standards Action
+          process defined in [RFC2434], or the Early IANA Allocation process
+          defined in [RFC4020].
+
+</pre><a href="#section-7.3.3-2" class="pilcrow">¶</a>
+</div>
+</section>
+<section id="section-7.3.4">
+          <h4 id="name-endpoint-types">
+<a href="#section-7.3.4" class="section-number selfRef">7.3.4. </a><a href="#name-endpoint-types" class="section-name selfRef">Endpoint Types</a>
+          </h4>
+<p id="section-7.3.4-1">This is a Registry for Type codes in <a href="#ep-tlv" class="auto internal xref">Section 5.3.1</a>
+          "Endpoint Identifier" Forwarding Argument.<a href="#section-7.3.4-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.3.4-2">
+<pre>
+    Under "Border Gateway Protocol (BGP) Parameters",
+
+      Registry Group: BGP MultiNextHop Attribute
+
+      Registry Name: Endpoint Types
+
+          Endpoint Type   Value
+         -------------  ---------
+            0           Reserved
+            1           IPv4 Address
+            2           IPv6 Address
+            3           MPLS Label
+            4           Fwd Context RD
+            5           Fwd Context RT
+            6-254       Unassigned
+            255         Reserved
+
+      Reference: This document.
+
+      Registration Procedure(s)
+          Future assignments are to be made using either the Standards Action
+          process defined in [RFC2434], or the Early IANA Allocation process
+          defined in [RFC4020].
+
+</pre><a href="#section-7.3.4-2" class="pilcrow">¶</a>
+</div>
+</section>
+<section id="section-7.3.5">
+          <h4 id="name-path-constrain-types">
+<a href="#section-7.3.5" class="section-number selfRef">7.3.5. </a><a href="#name-path-constrain-types" class="section-name selfRef">Path Constrain Types</a>
+          </h4>
+<p id="section-7.3.5-1">This is a Registry for Type codes in <a href="#constrain-tlv" class="auto internal xref">Section 5.3.2</a> "Path Constrain" Forwarding Argument.<a href="#section-7.3.5-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.3.5-2">
+<pre>
+    Under "Border Gateway Protocol (BGP) Parameters",
+
+      Registry Group: BGP MultiNextHop Attribute
+
+      Registry Name: Path Constrain Types
+
+         ConstrainType             Value
+         -------------  -------------------------
+           0             Reserved
+           1             Proximity check
+           2             Transport Class ID (Color)
+           3             Load balance factor
+           4-254         Unassigned
+           255           Reserved
+
+      Reference: This document.
+
+      Registration Procedure(s)
+           Future assignments are to be made using either the Standards Action
+           process defined in [RFC2434], or the Early IANA Allocation process
+           defined in [RFC4020].
+
+</pre><a href="#section-7.3.5-2" class="pilcrow">¶</a>
+</div>
+</section>
+<section id="section-7.3.6">
+          <h4 id="name-encapsulation-types">
+<a href="#section-7.3.6" class="section-number selfRef">7.3.6. </a><a href="#name-encapsulation-types" class="section-name selfRef">Encapsulation Types</a>
+          </h4>
+<p id="section-7.3.6-1">This is a Registry for Type codes in <a href="#encap-tlv" class="auto internal xref">Section 5.3.3</a>
+          "Payload Encapsulation Info" Forwarding Argument.<a href="#section-7.3.6-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.3.6-2">
+<pre>
+      Under "Border Gateway Protocol (BGP) Parameters",
+
+        Registry Group: BGP MultiNextHop Attribute
+
+        Registry Name: Encapsulation Types
+
+            Encap Type        Value
+          -------------  --------------
+            0           Reserved
+            1           MPLS Label Info
+            2           SR MPLS label Index Info
+            3           SRv6 SID info
+            4           DSCP code point
+            5-254       Unassigned
+            255         Reserved
+
+        Reference: This document.
+
+        Registration Procedure(s)
+            Future assignments are to be made using either the Standards Action
+            process defined in [RFC2434], or the Early IANA Allocation process
+            defined in [RFC4020].
+
+</pre><a href="#section-7.3.6-2" class="pilcrow">¶</a>
+</div>
+</section>
+<section id="section-7.3.7">
+          <h4 id="name-endpoint-attribute-types">
+<a href="#section-7.3.7" class="section-number selfRef">7.3.7. </a><a href="#name-endpoint-attribute-types" class="section-name selfRef">Endpoint Attribute Types</a>
+          </h4>
+<p id="section-7.3.7-1">This is a Registry for Type codes in <a href="#epattr-tlv" class="auto internal xref">Section 5.3.4</a>
+          "Endpoint attributes" Forwarding Argument.<a href="#section-7.3.7-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.3.7-2">
+<pre>
+    Under "Border Gateway Protocol (BGP) Parameters",
+
+      Registry Group: BGP MultiNextHop Attribute
+
+      Registry Name:  Endpoint Attribute Types
+
+         EP Attrib Type      Attrib Value
+         ----------------  ------------------
+           0               Reserved
+           1               Bandwidth
+           2-254           Unassigned
+           255             Reserved
+
+       Reference: This document.
+
+       Registration Procedure(s)
+           Future assignments are to be made using either the Standards Action
+           process defined in [RFC2434], or the Early IANA Allocation process
+           defined in [RFC4020].
+
+</pre><a href="#section-7.3.7-2" class="pilcrow">¶</a>
+</div>
+<p id="section-7.3.7-3">Note to RFC Editor: this section may be removed on publication as
+          an RFC.<a href="#section-7.3.7-3" class="pilcrow">¶</a></p>
+</section>
+</section>
+</section>
+</div>
+<div id="Security">
+<section id="section-8">
+      <h2 id="name-security-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-8-1">The MNH attribute is defined as optional non-transitive BGP
+      attribute, such that it does not accidentally get propagated or leaked
+      via BGP speakers that dont support this feature, especially does not
+      unintentionally leak across EBGP boundaries.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-2">MNH may be used to advertise nexthop with MPLS label in various BGP
+      families. In scenarios where MPLS is enabled on link to a device in an
+      untrusted domain, e.g. a PE-CE link or ASBR-ASBR inter-AS link, security
+      can be provided against MPLS label spoofing by using MPLS context tables
+      as described in <span><a href="#MplsCE" class="internal xref">MPLS enabled CE</a> (<a href="#MplsCE" class="auto internal xref">Appendix A.9.2</a>)</span>. Such that
+      only MPLS traffic with labels advertised to the BGP speaker are allowed
+      to forward. However, the PE may not be able to perform any checks based
+      on inner payload in the MPLS packet since it performs label swap
+      forwarding. Such 'inner payload' based checks may be offloaded to a
+      downstream node that forwards and processes inner payload, e.g., an IP
+      router having full FIB. These security aspects should be considered when
+      using MPLS enabled CE devices.<a href="#section-8-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="Contributors">
+<section id="section-9">
+      <h2 id="name-contributors">
+<a href="#name-contributors" class="section-name selfRef">Contributors</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Reshma Das</span></div>
+<div dir="auto" class="left"><span class="org">Juniper Networks, Inc.</span></div>
+<div dir="auto" class="left"><span class="street-address">1133 Innovation Way,</span></div>
+<div dir="auto" class="left">
+<span class="locality">Sunnyvale</span>, <span class="region">CA</span> <span class="postal-code">94089</span>
+</div>
+<div dir="auto" class="left"><span class="country-name">United States of America</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:dreshma@juniper.net" class="email">dreshma@juniper.net</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Natrajan Venkataraman</span></div>
+<div dir="auto" class="left"><span class="org">Juniper Networks, Inc.</span></div>
+<div dir="auto" class="left"><span class="street-address">1133 Innovation Way,</span></div>
+<div dir="auto" class="left">
+<span class="locality">Sunnyvale</span>, <span class="region">CA</span> <span class="postal-code">94089</span>
+</div>
+<div dir="auto" class="left"><span class="country-name">United States of America</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:natv@juniper.net" class="email">natv@juniper.net</a>
+</div>
+</address>
+</section>
+</div>
+<div id="Acknowledgements">
+<section id="section-10">
+      <h2 id="name-acknowledgements">
+<a href="#name-acknowledgements" class="section-name selfRef">Acknowledgements</a>
+      </h2>
+<p id="section-10-1">Thanks to Jeff Haas, Robert Raszuk, Ron Bonica for the review,
+      discussions and input to the draft.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<p id="section-10-2">Thanks to Blaine Williams and Satya Mohanty for the discussions on
+      some usecases.<a href="#section-10-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<section id="section-11">
+      <h2 id="name-references">
+<a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<section id="section-11.1">
+        <h3 id="name-normative-references">
+<a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="RFC2545">[RFC2545]</dt>
+        <dd>
+<span class="refAuthor">Marques, P.</span> and <span class="refAuthor">F. Dupont</span>, <span class="refTitle">"Use of BGP-4 Multiprotocol Extensions for IPv6 Inter-Domain Routing"</span>, <span class="seriesInfo">RFC 2545</span>, <span class="seriesInfo">DOI 10.17487/RFC2545</span>, <time datetime="1999-03" class="refDate">March 1999</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2545">https://www.rfc-editor.org/info/rfc2545</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC4271">[RFC4271]</dt>
+        <dd>
+<span class="refAuthor">Rekhter, Y., Ed.</span>, <span class="refAuthor">Li, T., Ed.</span>, and <span class="refAuthor">S. Hares, Ed.</span>, <span class="refTitle">"A Border Gateway Protocol 4 (BGP-4)"</span>, <span class="seriesInfo">RFC 4271</span>, <span class="seriesInfo">DOI 10.17487/RFC4271</span>, <time datetime="2006-01" class="refDate">January 2006</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc4271">https://www.rfc-editor.org/info/rfc4271</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7311">[RFC7311]</dt>
+        <dd>
+<span class="refAuthor">Mohapatra, P.</span>, <span class="refAuthor">Fernando, R.</span>, <span class="refAuthor">Rosen, E.</span>, and <span class="refAuthor">J. Uttaro</span>, <span class="refTitle">"The Accumulated IGP Metric Attribute for BGP"</span>, <span class="seriesInfo">RFC 7311</span>, <span class="seriesInfo">DOI 10.17487/RFC7311</span>, <time datetime="2014-08" class="refDate">August 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7311">https://www.rfc-editor.org/info/rfc7311</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7606">[RFC7606]</dt>
+        <dd>
+<span class="refAuthor">Chen, E., Ed.</span>, <span class="refAuthor">Scudder, J., Ed.</span>, <span class="refAuthor">Mohapatra, P.</span>, and <span class="refAuthor">K. Patel</span>, <span class="refTitle">"Revised Error Handling for BGP UPDATE Messages"</span>, <span class="seriesInfo">RFC 7606</span>, <span class="seriesInfo">DOI 10.17487/RFC7606</span>, <time datetime="2015-08" class="refDate">August 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7606">https://www.rfc-editor.org/info/rfc7606</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7911">[RFC7911]</dt>
+        <dd>
+<span class="refAuthor">Walton, D.</span>, <span class="refAuthor">Retana, A.</span>, <span class="refAuthor">Chen, E.</span>, and <span class="refAuthor">J. Scudder</span>, <span class="refTitle">"Advertisement of Multiple Paths in BGP"</span>, <span class="seriesInfo">RFC 7911</span>, <span class="seriesInfo">DOI 10.17487/RFC7911</span>, <time datetime="2016-07" class="refDate">July 2016</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7911">https://www.rfc-editor.org/info/rfc7911</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8277">[RFC8277]</dt>
+      <dd>
+<span class="refAuthor">Rosen, E.</span>, <span class="refTitle">"Using BGP to Bind MPLS Labels to Address Prefixes"</span>, <span class="seriesInfo">RFC 8277</span>, <span class="seriesInfo">DOI 10.17487/RFC8277</span>, <time datetime="2017-10" class="refDate">October 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8277">https://www.rfc-editor.org/info/rfc8277</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+<section id="section-11.2">
+        <h3 id="name-informative-references">
+<a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="ADDPATH-GUIDELINES">[ADDPATH-GUIDELINES]</dt>
+        <dd>
+<span class="refAuthor">Uttaro, Ed.</span>, <span class="refTitle">"BGP Flow-Spec Redirect to IP Action"</span>, <time datetime="2016-04-25" class="refDate">25 April 2016</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-idr-add-paths-guidelines-08#section-2">https://datatracker.ietf.org/doc/html/draft-ietf-idr-add-paths-guidelines-08#section-2</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="BGP-CT">[BGP-CT]</dt>
+        <dd>
+<span class="refAuthor">Vairavakkalai, Ed.</span> and <span class="refAuthor">Venkataraman, Ed.</span>, <span class="refTitle">"BGP Classful Transport Planes"</span>, <time datetime="2023-03-17" class="refDate">17 March 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-ct-28">https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-ct-28</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="FLWSPC-REDIR-IP">[FLWSPC-REDIR-IP]</dt>
+        <dd>
+<span class="refAuthor">Simpson, Ed.</span>, <span class="refTitle">"BGP Flow-Spec Redirect to IP Action"</span>, <time datetime="2015-02-02" class="refDate">2 February 2015</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-idr-flowspec-redirect-ip#section-3">https://datatracker.ietf.org/doc/html/draft-ietf-idr-flowspec-redirect-ip#section-3</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="MPLS-NAMESPACES">[MPLS-NAMESPACES]</dt>
+        <dd>
+<span class="refAuthor">Vairavakkalai, Ed.</span>, <span class="refTitle">"BGP Signaled MPLS Namespaces"</span>, <time datetime="2023-07-10" class="refDate">10 July 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-kaliraj-bess-bgp-sig-private-mpls-labels-06">https://datatracker.ietf.org/doc/html/draft-kaliraj-bess-bgp-sig-private-mpls-labels-06</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2119">https://www.rfc-editor.org/info/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2474">[RFC2474]</dt>
+        <dd>
+<span class="refAuthor">Nichols, K.</span>, <span class="refAuthor">Blake, S.</span>, <span class="refAuthor">Baker, F.</span>, and <span class="refAuthor">D. Black</span>, <span class="refTitle">"Definition of the Differentiated Services Field (DS Field) in the IPv4 and IPv6 Headers"</span>, <span class="seriesInfo">RFC 2474</span>, <span class="seriesInfo">DOI 10.17487/RFC2474</span>, <time datetime="1998-12" class="refDate">December 1998</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2474">https://www.rfc-editor.org/info/rfc2474</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="SRTE-COLOR-ONLY">[SRTE-COLOR-ONLY]</dt>
+      <dd>
+<span class="refAuthor">Filsfils, Ed.</span>, <span class="refTitle">"BGP Flow-Spec Redirect to IP Action"</span>, <time datetime="2018-02-21" class="refDate">21 February 2018</time>, <span>&lt;<a href="https://tools.ietf.org/html/draft-filsfils-spring-segment-routing-policy-06#section-8.8.1">https://tools.ietf.org/html/draft-filsfils-spring-segment-routing-policy-06#section-8.8.1</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</section>
+<div id="AppendixA">
+<section id="appendix-A">
+      <h2 id="name-example-of-usecases">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-example-of-usecases" class="section-name selfRef">Example of Usecases</a>
+      </h2>
+<p id="appendix-A-1">This section describes various example usecases of the MNH
+      attribute.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<section id="appendix-A.1">
+        <h3 id="name-signaling-wecmp-to-ingress-">
+<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-signaling-wecmp-to-ingress-" class="section-name selfRef">Signaling WECMP to Ingress Node</a>
+        </h3>
+<p id="appendix-A.1-1">This section describes how MNH can be used to provide weighted
+        equal cost multipath in a network fabric, while not increasing RIB
+        scale.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
+<span id="name-wecmp-without-increasing-ri"></span><div id="topo-wecmp">
+<figure id="figure-22">
+          <div class="alignLeft art-text artwork" id="appendix-A.1-2.1">
+<pre>
+                                   [RR1]
+                                     .
+                   . +-[P21]         |
+                  .  +-[P22]         __
+                 .   +-[P23]      _.(  )..
+            [R1].    +-[P24] ..  (_      _) .. [R2]
+                 .   +-[P25]       (._..)
+                  .
+                   . +-[P2n]
+
+
+                    &lt;---- Traffic Direction ----
+
+</pre>
+</div>
+<figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
+<a href="#name-wecmp-without-increasing-ri" class="selfRef">WECMP without increasing RIB scale</a>
+          </figcaption></figure>
+</div>
+<p id="appendix-A.1-3"><a href="#topo-wecmp" class="auto internal xref">Figure 22</a> shows a network with BGP speaker R1
+        connected to a number of routers P21 .. P2n in its region. R1 is eSN
+        and R2 is iSN for the IP traffic in consideration. BGP service
+        families IPv4 Unicast (AFI/SAFI: 1/1) and IPv6 Unicast (AFI/SAFI: 2/1)
+        are negotiated on the BGP sessions between RR1 - R1 and RR1 - R2. RR1
+        reflects the BGP routes between R1 and R2 with next hop unchanged.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-4">When MNH is not in use, R1 advertises "n" BGP Addpath routes for a
+        service prefix Pfx1, each having a distinct next hop, P21 .. P2n, and
+        desired Link Bandwidth Extended Community. These Addpath routes will
+        be received by R2, which can do WECMP based on the Link Bandwidth
+        Extended Communities attached on the routes. This model increases RIB
+        scale by "n" times, so that WECMP can be achieved.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-5">When MNH is used in this network, R1 advertises a single BGP route
+        for prefix Pfx1, which contains a MNH attribute with "n" next hops,
+        each carrying the desired link bandwidth using <a href="#lb-perc" class="auto internal xref">Section 5.3.2.3</a> or <a href="#ep-bw" class="auto internal xref">Section 5.3.4.1</a><a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-6">This allows achieving WECMP in the network without increasing RIB
+        scale.<a href="#appendix-A.1-6" class="pilcrow">¶</a></p>
+</section>
+<section id="appendix-A.2">
+        <h3 id="name-signaling-optimal-forwardin">
+<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-signaling-optimal-forwardin" class="section-name selfRef">Signaling Optimal Forwarding Exitpoints to Ingress Node</a>
+        </h3>
+<p id="appendix-A.2-1">In a BGP free core, one can dynamically signal to the ingress-node,
+        how traffic should be load-balanced towards a set of exit nodes, in
+        one BGP-route containing this attribute.<a href="#appendix-A.2-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-2">Example, for prefix1, perform equal load balancing towards exit
+        nodes A, B; where as for prefix2, perform weighted load balancing
+        (40%, 30%, 30%) towards exit nodes A, B, C.<a href="#appendix-A.2-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-3">Example, for prefix1, use PE1 as primary-nexthop and use PE2 as a
+        backup-nexthop.<a href="#appendix-A.2-3" class="pilcrow">¶</a></p>
+</section>
+<section id="appendix-A.3">
+        <h3 id="name-load-balancing-to-multiple-">
+<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-load-balancing-to-multiple-" class="section-name selfRef">Load balancing to multiple CEs in a VRF</a>
+        </h3>
+<p id="appendix-A.3-1">This section describes how MNH can be used to provide load
+        balancing and entropy in a provider network for traffic destined to
+        multiple CEs in a VRF, without increasing RIB scale.<a href="#appendix-A.3-1" class="pilcrow">¶</a></p>
+<span id="name-load-balancing-to-multiple-c"></span><div id="topo-cevrf">
+<figure id="figure-23">
+          <div class="alignLeft art-text artwork" id="appendix-A.3-2.1">
+<pre>
+                                   [RR1]
+                                     .
+            [CE1].                   |
+                  .                  __
+            [CE2]  .              _.(  )..
+                    .[PE1]   ..  (_      _) .. [PE2]
+            [CE3]  .               (._..)
+                  .
+            [CE4].
+
+
+                    &lt;---- Traffic Direction ----
+
+</pre>
+</div>
+<figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
+<a href="#name-load-balancing-to-multiple-c" class="selfRef">Load balancing to multiple CEs in a VRF</a>
+          </figcaption></figure>
+</div>
+<p id="appendix-A.3-3"><a href="#topo-cevrf" class="auto internal xref">Figure 23</a> shows a L3VPN network with multiple CE
+        devices connected to the same VRF at PE1. The VRF is configured with a
+        RD: RD1, and uses "per next hop" label allocation mode to advertise
+        the CE routes to L3VPN core. PE1 is eSN and PE2 is iSN for the IP
+        traffic in consideration. CE1..CE4 advertise route for same prefix
+        Pfx1 in BGP service families IPv4 Unicast (AFI/SAFI: 1/1) negotiated
+        on the BGP sessions between the CEs and PE1. BGP L3VPN address family
+        (AFI/SAFI: 1/128) is negotiated between PE1 - RR1, and RR1 - PE2. RR1
+        reflects the BGP routes between PE1 and PE2 with next hop
+        unchanged.<a href="#appendix-A.3-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-4">PE1 would typically advertise to RR1 only the best path for prefix
+        Pfx1 out of routes received from CE1..CE4. Using per CE RD or Addpath
+        for L3VPN family may allow PE1 to advertise all CE routes to the RR,
+        with an increase in RIB scale. This model increases RIB scale by "n"
+        times, where 'n' is the number of CEs.<a href="#appendix-A.3-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-5">When MNH is used in this network, PE1 advertises a single BGP L3VPN
+        route for prefix Pfx1, which contains a MNH attribute with "n" next
+        hops, each carrying the label pointing towards a particular CE, using
+        <a href="#encap-tlv" class="auto internal xref">Section 5.3.3</a> along with the <a href="#ep-tlv" class="auto internal xref">Section 5.3.1</a><a href="#appendix-A.3-5" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-6">This allows the network to direct traffic to a specific CE, and
+        better loadbalance traffic in the provider network, with entropy
+        provided by the per CE VPN labels, without increasing RIB scale.<a href="#appendix-A.3-6" class="pilcrow">¶</a></p>
+</section>
+<section id="appendix-A.4">
+        <h3 id="name-signaling-desired-forwardin">
+<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-signaling-desired-forwardin" class="section-name selfRef">Signaling Desired Forwarding Behavior for MPLS Upstream labels at Receiving Node</a>
+        </h3>
+<p id="appendix-A.4-1">In Upstream label allocation case, the receiving speaker's
+        forwarding-state can be controlled by the advertising speaker, thus
+        enabling a standardized API to program desired MPLS forwarding-state
+        at the receiving node. This is described in the <span>[<a href="#MPLS-NAMESPACES" class="cite xref">MPLS-NAMESPACES</a>]</span><a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
+</section>
+<section id="appendix-A.5">
+        <h3 id="name-load-balancing-over-ebgp-pa">
+<a href="#appendix-A.5" class="section-number selfRef">A.5. </a><a href="#name-load-balancing-over-ebgp-pa" class="section-name selfRef">Load Balancing over EBGP Parallel Links</a>
+        </h3>
+<p id="appendix-A.5-1">Consider N parallel links between two EBGP speakers. There are
+        different models possible to do load balancing over these links:<a href="#appendix-A.5-1" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="appendix-A.5-2.1">
+            <p id="appendix-A.5-2.1.1">N single-hop EBGP sessions over the N links. Interface
+            addresses are used as next-hops. N copies of the RIB are exchanged
+            to form N-way ECMP paths. The routes advertised on the N sessions
+            can be attached with Link bandwidth comunity to perform weighted
+            ECMP.<a href="#appendix-A.5-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal ulEmpty" id="appendix-A.5-2.2">
+            <p id="appendix-A.5-2.2.1">1 multi-hop EBGP session between loopback addresses, reachable
+            via static route over the N links. Loopback addresses are used as
+            next-hops. 1 copy of the RIB is exchanged with loopback address as
+            nexthop. And a static route can be configured to the loopback
+            address to perform desired N-way ECMP path. M loopbacks are
+            configured in this model, to achieve M different load balancing
+            schemes: ECMP, weighted ECMP, Fast-reroute enabled paths etc.<a href="#appendix-A.5-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal ulEmpty" id="appendix-A.5-2.3">
+            <p id="appendix-A.5-2.3.1">1 multi-hop EBGP session between loopback addresses, reachable
+            via static route over the N links. Interface addresses are used as
+            next-hops, without using additional loopbacks. 1 copy of the RIB
+            is exchanged with MNH attribute to form N-way ECMP paths, weighted
+            ECMP, Fast-reroute backup paths etc. BFD may be used to these
+            directly connected BGP nexthops to detect liveness.<a href="#appendix-A.5-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+<section id="appendix-A.6">
+        <h3 id="name-flowspec-routes-with-multip">
+<a href="#appendix-A.6" class="section-number selfRef">A.6. </a><a href="#name-flowspec-routes-with-multip" class="section-name selfRef">Flowspec Routes with Multiple "Redirect IP" next hops</a>
+        </h3>
+<p id="appendix-A.6-1">There are existing protocol machinery which can benefit from the
+        ability of MNH to clearly specify fallback behavior when multiple
+        nexthops are involved. One example is the scenario described in <span>[<a href="#FLWSPC-REDIR-IP" class="cite xref">FLWSPC-REDIR-IP</a>]</span> where multiple Redirect-to-IP nexthop
+        addresses exist for a Flowspec prefix. In such a scenario, the
+        receiving speakers may redirect the traffic to different nexthops,
+        based on variables like IGP-cost. If instead, the MNH was used to
+        specify the redirect-to-IP nexthop, then the order of preference
+        between the different nexthops can be clearly specified using one
+        flowspec route carrying a MNH containing those different
+        nexthop-addresses specifying the desired preference-order. Such that,
+        irrespective of IGP-cost, the receiving speakers will redirect the
+        flow towards the same traffic collector device.<a href="#appendix-A.6-1" class="pilcrow">¶</a></p>
+</section>
+<section id="appendix-A.7">
+        <h3 id="name-color-only-resolution-next-">
+<a href="#appendix-A.7" class="section-number selfRef">A.7. </a><a href="#name-color-only-resolution-next-" class="section-name selfRef">Color-Only Resolution next hop</a>
+        </h3>
+<p id="appendix-A.7-1">Another existing protocol machinery that manufactures nexthop
+        addresses from overloaded extended color community is specified in
+        <span>[<a href="#SRTE-COLOR-ONLY" class="cite xref">SRTE-COLOR-ONLY</a>]</span>. In a way, the color field is
+        overloaded to carry one anycast BGP next-hop with pre-specified
+        fallback options. This approach gives us only two next-hops to play
+        with. The 'BGP nexthop address' and the 'Color-only nexthop'<a href="#appendix-A.7-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.7-2">Instead, the MNH could be used to achieve the same result with more
+        flexibility. Multiple BGP nexthops can be carried, each resolving over
+        a desired Transport class (Color), and with customizable fallback
+        order. And the solution will work for non-SRTE networks as-well.<a href="#appendix-A.7-2" class="pilcrow">¶</a></p>
+</section>
+<section id="appendix-A.8">
+        <h3 id="name-avoid-label-advertisement-o">
+<a href="#appendix-A.8" class="section-number selfRef">A.8. </a><a href="#name-avoid-label-advertisement-o" class="section-name selfRef">Avoid Label Advertisement Oscillation Between Multihomed PEs.</a>
+        </h3>
+<p id="appendix-A.8-1">In a MPLS network, a router may be multihomed to two PEs. The PEs
+        may re-advertise routes received from the router to the IBGP core with
+        self as nexthop and a "per nexthop" label. The PEs may also protect
+        failure of primary path to the router by using the IBGP path via the
+        other multihomed PE as a backup path.<a href="#appendix-A.8-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.8-2">In this scenario, label allocation oscillation may occur when one
+        PE advertises a new label to the other PE. Reception of a new label
+        results in change of nexthop, as the label is used as back nexthop
+        leg, and per-nexthop label allocation is in use. Thus a new label is
+        allocated and advertised. And when this new label is received by the
+        first PE, it allocates a new label in turn. This process repeats.<a href="#appendix-A.8-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.8-3">This oscillation can be stopped only if the primary path label
+        allocated by a PE does not depend on the primary path label advertised
+        by other PE. A PE needs to be able to advertise multiple labels, one
+        for use as primary path and another to be used as bacakup path by the
+        receiver.<a href="#appendix-A.8-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.8-4">MNH attribute allows to advertise a Backup forwarding path label
+        using <a href="#upstr-bkp" class="auto internal xref">Section 5.1.2</a> in addition to Primary forwarding
+        path label using <a href="#upstr-prim" class="auto internal xref">Section 5.1.1</a><a href="#appendix-A.8-4" class="pilcrow">¶</a></p>
+</section>
+<section id="appendix-A.9">
+        <h3 id="name-signaling-intent-over-pe-ce">
+<a href="#appendix-A.9" class="section-number selfRef">A.9. </a><a href="#name-signaling-intent-over-pe-ce" class="section-name selfRef">Signaling Intent over PE-CE Attachment Circuit</a>
+        </h3>
+<p id="appendix-A.9-1">BGP CT specifies procedures for Intent Driven Service Mapping in a
+        service provider network, and defines 'Transport Class' construct to
+        represent an Intent.<a href="#appendix-A.9-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.9-2">It may be desirable to allow a CE device to indicate in the data
+        packet it sends what treatment it desires (the Intent) when the packet
+        is forwarded within the provider network.<a href="#appendix-A.9-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.9-3">This section describes the mechanisms that enable such signaling.
+        These procedures use existing AFIs 1 or 2, and service families (SAFI
+        1) on the PE-CE attachment circuit, with a new BGP attribute.<a href="#appendix-A.9-3" class="pilcrow">¶</a></p>
+<span id="name-example-topology-with-pe-ce"></span><div id="Intent_PE_CE">
+<figure id="figure-24">
+          <div class="alignLeft art-text artwork" id="appendix-A.9-4.1">
+<pre>
+                                    ---Gold-----&gt;
+                      [CE1]-----[PE1]---[P]----[PE2]-----[CE2]
+                                    ---Bronze---&gt;
+                203.0.113.11                             203.0.113.22
+                          ----  Traffic direction ----&gt;
+</pre>
+</div>
+<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
+<a href="#name-example-topology-with-pe-ce" class="selfRef">Example Topology with PE-CE Links</a>
+          </figcaption></figure>
+</div>
+<section id="appendix-A.9.1">
+          <h4 id="name-using-dscp-in-multinexthop-">
+<a href="#appendix-A.9.1" class="section-number selfRef">A.9.1. </a><a href="#name-using-dscp-in-multinexthop-" class="section-name selfRef">Using DSCP in MultiNexthop Attribute</a>
+          </h4>
+<p id="appendix-A.9.1-1">Such an indication can be in form of DSCP code point (<span>[<a href="#RFC2474" class="cite xref">RFC2474</a>]</span>) in the IP header.<a href="#appendix-A.9.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.9.1-2">In RFC2474, a Forwarding Class Selector maps to a PHB (Per-hop
+          Behavior). The Transport Class construct is a PHB at transport
+          layer.<a href="#appendix-A.9.1-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.9.1-3">Let PE1 be configured to map DSCP1 to Gold Transport class, and
+          DSCP2 to Bronze Transport class. Based on the DSCP code point
+          received on the IP traffic from CE1, PE1 forwards the IP packet over
+          a Gold or Bronze tunnel. Thus, the forwarding is not based on just
+          the destination IP address, but also the DSCP code point. This is
+          known as Class Based Forwarding (CBF). Today CBF is configured at
+          the PE1 device roles and CE1 doesn't receive any indication in BGP
+          signaling regarding what DSCP code points are being offered by the
+          provider network.<a href="#appendix-A.9.1-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.9.1-4">With a BGP MultiNexthop Attribute attached to a AFI/SAFI 1/1
+          service route, it is possible to extend the PE-CE BGP signaling (if
+          used) to communicate such information to the CE1. In the preceding
+          example, the MNH contains two Next hop Legs, described by two
+          Forwarding Instruction TLVs. Each Next hop Leg contains PE1's
+          peering self address in Endpoint Identifier TLV ( <a href="#ep-tlv" class="auto internal xref">Section 5.3.1</a>), the color Gold or Bronze encoded in the
+          Transport class ID TLV (Section 5.4.2.2, <a href="#tc-tlv-fig" class="auto internal xref">Figure 12</a>), and associated DSCP code point indicating
+          Gold or Bronze transport class encoded in the Payload Encapsulation
+          Info TLV (Section 5.4.3.4, <a href="#encap-tlv" class="auto internal xref">Section 5.3.3</a>). This allows
+          the CE to discover what transport classes exist in the provider
+          network, and which DSCP codepoint to encode so that traffic is
+          forwarded using the desired transport class in the provided
+          network.<a href="#appendix-A.9.1-4" class="pilcrow">¶</a></p>
+</section>
+<div id="MplsCE">
+<section id="appendix-A.9.2">
+          <h4 id="name-mpls-enabled-ce">
+<a href="#appendix-A.9.2" class="section-number selfRef">A.9.2. </a><a href="#name-mpls-enabled-ce" class="section-name selfRef">MPLS-enabled CE</a>
+          </h4>
+<p id="appendix-A.9.2-1">If the PE-CE link is MPLS enabled, a distinct MPLS label can also
+          be used to express Intent in data packets from CE. Enabling MPLS
+          forwarding on PE-CE links comes with some security implications.
+          This section gives details on these aspects.<a href="#appendix-A.9.2-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.9.2-2">Consider the ingress PE1 receiving a VPN prefix RD:Pfx1 received
+          with VPN label VL1, next hop as PE2 and a mapping community
+          containing TC1 as 'Transport class ID'. PE1 can allocate a MPLS
+          Label PVL1 for the tuple "VPN Label, PNH Address, Transport class
+          ID" and advertise to CE1.<a href="#appendix-A.9.2-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.9.2-3">Label PVL1 may identifies a service function at any node in the
+          network, e.g. a Firewall device or egress node PE2. And, for the
+          same service prefix, a distinct label may be advertised to different
+          CEs, such that incoming traffic from different CEs to the same
+          service prefix can be diverted to a distinct devices in the network
+          for further processing. This provides Ingress Peer Engineering
+          control to the network.<a href="#appendix-A.9.2-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.9.2-4">PE1 installs a MPLS FIB route for PVL1 with next hop as "Swap
+          VL1, Push TL1 towards PE2". TL1 is the BGP CT label received for the
+          tuple 'PE2, TC1'. In forwarding, when MPLS packet with label PVL1 is
+          received from CE1, PVL1 Swaps to label VL1 and pushes the BGP CT
+          label TL1. PE1 advertises the label "PVL1" in the MNH to CE1. PE1
+          forwards based on MPLS label without performing any IP lookup. This
+          allows for PE1 to be a low IP FIB device and still support CBF by
+          using MPLS Label inferred PHB. The number of MPLS Labels consumed at
+          PE1 for this approach will be proportional to the number of Service
+          functions and Intents that are exposed to CE1.<a href="#appendix-A.9.2-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.9.2-5">A BGP MultiNexthop Attribute is attached to a AFI/SAFI 1/1
+          service route to convey the MPLS Label information to CE1. In the
+          preceding example, the MNH contains two Next hop Legs, described by
+          two Forwarding Instruction TLVs. Each Next hop Leg contains PE1's
+          peering self address in Endpoint Identifier TLV ( <a href="#ep-tlv" class="auto internal xref">Section 5.3.1</a>), the color Gold or Bronze encoded in the
+          Transport class ID TLV (<a href="#tc-tlv-fig" class="auto internal xref">Figure 12</a>), and associated
+          MPLS Label "PVL1" or "PVL2" encoded in the Payload Encapsulation
+          Info TLV (Section 5.4.3.1, <a href="#encap-tlv" class="auto internal xref">Section 5.3.3</a>). This allows
+          the CE to discover what transport classes exist in the provider
+          network, and which MPLS Label to encode so that traffic is forwarded
+          using the desired transport class.<a href="#appendix-A.9.2-5" class="pilcrow">¶</a></p>
+<section id="appendix-A.9.2.1">
+            <h5 id="name-secure-mpls-forwarding-on-i">
+<a href="#appendix-A.9.2.1" class="section-number selfRef">A.9.2.1. </a><a href="#name-secure-mpls-forwarding-on-i" class="section-name selfRef">Secure MPLS Forwarding on Inter-AS Link</a>
+            </h5>
+<p id="appendix-A.9.2.1-1">The MPLS enabled PE-CE attachment circuit is considered
+            connecting to an untrusted domain. Such interfaces can be secured
+            against MPLS label spoofing by a walled garden approach using
+            "MPLS context tables".<a href="#appendix-A.9.2.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.9.2.1-2">The PE1-CE1 interface can be confined to a specific MPLS
+            context table "A" corresponding to the BGP peer. Such that only
+            the routes for labels advertised to CE1 are installed in MPLS
+            context table "A".<a href="#appendix-A.9.2.1-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.9.2.1-3">This ensures that if CE1 sends MPLS packet with a label that
+            was not advertised to the CE1, the packet will be dropped.<a href="#appendix-A.9.2.1-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.9.2.1-4">Furthermore, the routes for labels PVL1, PVL2 installed in MPLS
+            context table "A" can match on 'Bottom of stack' bit being 'one',
+            ensuring a MPLS packet is accepted from CE1 only if it has no more
+            than one label in the label stack.<a href="#appendix-A.9.2.1-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.9.2.1-5">However, the PE itself may not be able to perform any checks
+            based on inner payload in the MPLS packet since it performs label
+            swap forwarding. Such inner payload based checks may be offloaded
+            to a downstream node that forwards and processes inner payload,
+            e.g. a IP FIB router. These security aspects should be considered
+            when using MPLS enabled CE devices.<a href="#appendix-A.9.2.1-5" class="pilcrow">¶</a></p>
+</section>
+</section>
+</div>
+</section>
+<section id="appendix-A.10">
+        <h3 id="name-4pe-signal-mpls-label-for-i">
+<a href="#appendix-A.10" class="section-number selfRef">A.10. </a><a href="#name-4pe-signal-mpls-label-for-i" class="section-name selfRef">4PE - Signal MPLS Label for IPv4 Unicast routes</a>
+        </h3>
+<p id="appendix-A.10-1">This section describes how MNH can be used to signal MPLS explicit
+        null label in AFI/SAFI: 1/1 routes in a pure IPv6 core environment, to
+        achieve 4PE.<a href="#appendix-A.10-1" class="pilcrow">¶</a></p>
+<span id="name-4pe-network-with-pure-ipv6-"></span><div id="topo-4pe">
+<figure id="figure-25">
+          <div class="alignLeft art-text artwork" id="appendix-A.10-2.1">
+<pre>
+                                   [RR1]
+                                     .
+                                     |
+                                     __
+                                  _.(  )..
+       [CE1] - [PE1]-[P1]    ..  (_  v6  _) .. [PE2] - [CE2]
+                                   (._..)
+
+
+                    &lt;---- Traffic Direction ----
+              P1: PHP node.
+              PE1: Egress PE.
+
+</pre>
+</div>
+<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
+<a href="#name-4pe-network-with-pure-ipv6-" class="selfRef">4PE Network with Pure IPv6 Core</a>
+          </figcaption></figure>
+</div>
+<p id="appendix-A.10-3"><a href="#topo-4pe" class="auto internal xref">Figure 25</a> shows a 4PE network with pure IPv6 core,
+        PE1 is the egress PE connected to penultimate hop node P1. PE1 to PE2
+        have some IPv6 core tunneling protocol like LDPv6. When PE1 has
+        advertised Implicit Null label in LDPv6, some implementations of P1
+        may not be able to forward the inner IPv4 payload to PE1.<a href="#appendix-A.10-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.10-4">To solve this problem, PE1 needs to signal IPv4 Explicit NULL Label
+        (Special Label 0) to PE2. PE2 will push this IPv4 Explicit NULL Label
+        received in the MNH on the AFI/SAFI:1/1 route. Such that P1 does a
+        MPLS Label swap operation and does not need to look into inner
+        payload.<a href="#appendix-A.10-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.10-5">MNH can be used by PE1 on a AFI/SAFI: 1/1 route, to advertise the
+        IPv4 Explicit Null label for the IPv4 Unicast service route. MPLS
+        Label is encoded in the Payload Encapsulation Info TLV (Section
+        5.4.3.1, <a href="#encap-tlv" class="auto internal xref">Section 5.3.3</a>).<a href="#appendix-A.10-5" class="pilcrow">¶</a></p>
+<p id="appendix-A.10-6">This allows the network to provide clear separation of service and
+        transport routes, and not overloading AFI/SAFI: 1/4 to carry the IPv4
+        service routes. Not mixing service and transport routes improves
+        security and manageability aspects of the network.<a href="#appendix-A.10-6" class="pilcrow">¶</a></p>
+<p id="appendix-A.10-7">An egress PE may not need to advertise IPv4 Explicit Null label for
+        the IPv4 service route, if it does UHP label in LDPv6. This model
+        using MNH provides a homogenous service layer (AFI/SAFI: 1/1) that
+        accomodates differences in requirement of different PE and P routers.
+        Only the PEs which are connected to P nodes that cannot handle the PHP
+        situation need to advertise Label using MNH. The service layer is kept
+        consistent in the network, and can seamlessly extend to multiple
+        domains without needing redistribution between AFI/SAFIs.<a href="#appendix-A.10-7" class="pilcrow">¶</a></p>
+<p id="appendix-A.10-8">Not mixing service and transport routes improves security and
+        manageability aspects of the network.<a href="#appendix-A.10-8" class="pilcrow">¶</a></p>
+</section>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-B">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Kaliraj Vairavakkalai (<span class="role">editor</span>)</span></div>
+<div dir="auto" class="left"><span class="org">Juniper Networks, Inc.</span></div>
+<div dir="auto" class="left"><span class="street-address">1133 Innovation Way,</span></div>
+<div dir="auto" class="left">
+<span class="locality">Sunnyvale</span>, <span class="region">CA</span> <span class="postal-code">94089</span>
+</div>
+<div dir="auto" class="left"><span class="country-name">United States of America</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:kaliraj@juniper.net" class="email">kaliraj@juniper.net</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Minto Jeyananth</span></div>
+<div dir="auto" class="left"><span class="org">Juniper Networks, Inc.</span></div>
+<div dir="auto" class="left"><span class="street-address">1133 Innovation Way,</span></div>
+<div dir="auto" class="left">
+<span class="locality">Sunnyvale</span>, <span class="region">CA</span> <span class="postal-code">94089</span>
+</div>
+<div dir="auto" class="left"><span class="country-name">United States of America</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:minto@juniper.net" class="email">minto@juniper.net</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Mohan Nanduri</span></div>
+<div dir="auto" class="left"><span class="org">Microsoft</span></div>
+<div dir="auto" class="left"><span class="street-address">1 Microsoft Way,</span></div>
+<div dir="auto" class="left">
+<span class="locality">Redmond</span>, <span class="region">WA</span> <span class="postal-code">98052</span>
+</div>
+<div dir="auto" class="left"><span class="country-name">United States of America</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:mohannanduri@microsoft.com" class="email">mohannanduri@microsoft.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Avinash Reddy</span></div>
+<div dir="auto" class="left"><span class="org">AT&amp;T</span></div>
+<div dir="auto" class="left"><span class="street-address">3400 W Plano Pkwy,</span></div>
+<div dir="auto" class="left">
+<span class="locality">Plano</span>, <span class="region">TX</span> <span class="postal-code">75075</span>
+</div>
+<div dir="auto" class="left"><span class="country-name">United States of America</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:ar977m@att.com" class="email">ar977m@att.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
