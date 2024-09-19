@@ -10,7 +10,7 @@
 <?rfc inline="yes"?>
 <?rfc compact="yes"?>
 <?rfc subcompact="no"?>
-<rfc category="std" docName="draft-ietf-idr-multinexthop-attribute-01"
+<rfc category="std" docName="draft-ietf-idr-multinexthop-attribute-02"
      ipr="trust200902">
   <front>
     <title abbrev="BGP MultiNexthop attribute">BGP MultiNexthop
@@ -97,7 +97,7 @@
       </address>
     </author>
 
-    <date day="11" month="August" year="2024"/>
+    <date day="18" month="September" year="2024"/>
 
     <abstract>
       <t>Today, a BGP speaker can advertise one nexthop for a set of NLRIs in
@@ -107,10 +107,11 @@
       across various attributes, extended communities or the NLRI field.</t>
 
       <t>This document defines a new optional non-transitive BGP attribute
-      called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD, that
-      can be used to carry an ordered set of one or more Nexthops in the same
-      Update message, with all forwarding information being carried in one
-      attribute, scoped on a per nexthop basis.</t>
+      called "MultiNexthop (MNH)" with IANA code TBD. The MNH provides two
+      things: it allows carrying the Nexthop and related forwarding
+      information in one BGP attribute. The MNH also enables carrying an
+      ordered set of multiple Nexthops in the same attribute, with forwarding
+      information scoped on a per Nexthop basis.</t>
     </abstract>
 
     <note title="Requirements Language">
@@ -130,10 +131,11 @@
       across various attributes, extended communities or the NLRI field.</t>
 
       <t>This document defines a new optional non-transitive BGP attribute
-      called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD, that
-      can be used to carry an ordered set of one or more Nexthops in the same
-      route, with all forwarding information being carried in one attribute,
-      scoped on a per nexthop basis.</t>
+      called "MultiNexthop (MNH)" with IANA code TBD. The MNH provides two
+      things: it allows carrying the Nexthop and related forwarding
+      information in one BGP attribute. The MNH also enables carrying an
+      ordered set of multiple Nexthops in the same attribute, with forwarding
+      information scoped on a per Nexthop basis.</t>
 
       <t/>
     </section>
@@ -194,8 +196,7 @@
       nexthop is scattered across various attributes, extended communities or
       the NLRI field. On some other address families like Flowspec, nexthop
       address is carried without using the nexthop attribute, in one or more
-      extended communities of specific type. It may be desirable to carry them
-      scoped in a single attribute.</t>
+      extended communities of specific type.</t>
 
       <t>It may be desirable to carry the forwarding information for a nexthop
       scoped in a single attribute, and uniformly for all address
@@ -325,12 +326,12 @@
           |R R R R R M|
           +-+-+-+-+-+-+
 
-       6 bits following the Version bits are MNH Flags. 
+       6 bits following the Version bits are MNH Flags.
 
-           M: "Mandatory". 
+           M: "Mandatory".
               Value 1 indicates that this MNH attribute is mandatory.
               If this MNH attr is invalid, the route is Unusable Hidden.
-              
+
            R: Reserved. MUST be set to zero, SHOULD be ignored by receiver.
 
    - Advt-PNH-Len (1 octet)
@@ -349,7 +350,7 @@
         </figure>
 
         <section title="Processing the MNH Header">
-          <t>A BGP speaker MUST fill MNH Version field to 0. </t>
+          <t>A BGP speaker MUST fill MNH Version field to 0.</t>
 
           <t>If a MNH is received with a Version other than 0, the MNH
           attribute MUST be considered invalid, and be treated as Unrecognized
@@ -395,8 +396,7 @@
           <t>The MNH attribute is intended to be used in a BGP free core,
           between egress and ingress BGP speakers that understand this
           attribute. These BGP speakers may have an intra-AS or inter-AS BGP
-          session between them. On propagating the route with nexthop altered,
-          a new MNH attribute MAY be added by the advertising speaker.</t>
+          session between them.</t>
 
           <t>To avoid un-intentionally leaking the MNH to another AS, via a
           BGP speaker that does not understand MNH attribute, it is defined as
@@ -440,33 +440,63 @@
           is set to the Nexthop field in BGP route being re-advertised.</t>
         </section>
 
+        <section anchor="mnh-confl-handle"
+                 title="Interaction with Forwarding Info in Rest of Update">
+          <t>A type of forwarding information may be carried in both the MNH
+          as-well as remaining portions of the Update message. E.g., AIGP,
+          Link Bandwidth Extended Community.</t>
+
+          <t>The instance of forwarding information carried outside the MNH is
+          associated with the BGP Nexthop (attribute codes 3, 14). The
+          instance of forwarding information carried inside the MNH attribute
+          is more specific, and overrides the one carried outside the MNH. It
+          is associated with the <xref target="ep-tlv">Endpoint</xref> in
+          <xref target="fi-tlv">Forwarding Info TLV</xref> that is part of
+          same MNH attribute.</t>
+
+          <t>This rule holds good for any type of forwarding information
+          carried in the MNH, unless specified otherwise by that type of
+          forwarding information.</t>
+
+          <t>An exception to this rule is the MPLS Label stack information
+          carried in <xref target="RFC8277"/> NLRI field. The Labels carried
+          in the NLRI are imposed as inner labels with the Encapsulation Info
+          specified in <xref target="encap-tlv">Encap Info TLV</xref> used as
+          outer encapsulation.</t>
+        </section>
+
         <section anchor="err-mnh-attr" title="Error Handling">
           <t>A TLV or sub-TLV of a certain Type in a MNH attribute can occur
           only once, unless specified otherwise by that type value. If
           multiple instances of such TLV or sub-TLV is received, the instances
           other than the first occurance are ignored.</t>
 
+          <t>MNH employs a hierarchical error detection mechanism, where an
+          error in lower layer TLVs is percolated upwards to the MNH
+          attribute, based on the M bit. If the M bit in a TLV is 0, any error
+          in the TLV is ignored and continue processing. If the M bit is 1,
+          the TLV is considered invalid, and the error exception percolates up
+          to the upper layer TLV, which takes the decision again based on it's
+          M bit, until the MNH attribute top level. If the M bits all the way
+          to the top were set to 1, then the error makes the MNH invalid.</t>
+
           <t>If processing of a received MNH attribute resulted in an error,
           then the "M bit" is used to decide the action. If the M bit is 0,
           then the MNH attribute is ignored, <xref target="RFC7606"/>
           'Attribute Discard' approach MUST be used, and continue to process
           rest of the update. If M bit is 1, then the BGP Route containing the
-          MNH MUST be considered Unusable. </t>
-
-          <t>MNH employs a hierarchical error detection mechanism, where an
-          error in lower layer TLVs is percolated upwards to the MNH
-          attribute, based on the M bit.</t>
+          MNH MUST be considered Unusable.</t>
 
           <t>Implementations MAY provide policy configuration to set M bit to
           0 on a MNH attribute being added, this helps with testing impact of
           the MNH on receiving nodes. Once confident, the MNH attribute can be
           re-advertised with M bit set. This helps in graceful incremental
-          deployment. </t>
+          deployment.</t>
 
           <t>The definition of a certain type of TLV or Sub-TLV in the MNH
           should specify in it's procedures, the value of M bit to be used. An
-          implementation MAY provide configuration to set or reset the M bit.
-          </t>
+          implementation MAY provide configuration to set or reset the M
+          bit.</t>
         </section>
       </section>
 
@@ -499,15 +529,13 @@
 
        All bits are reserved.
 
-           M: "Mandatory". 
+           M: "Mandatory".
               Value 1 indicates that this MNH TLV is mandatory.
               If this MNH TLV is not understood, the MNH attribute
               containing it is considered invalid.
 
-           R: "Reserved". 
+           R: "Reserved".
               MUST be set to zero, SHOULD be ignored by receiver.
-
- This document defines the following MNH TLV types:
 
  - MNH Type Code (1 octet)
       Type of MNH TLV. 0 is Reserved.
@@ -521,32 +549,33 @@
         </figure>
 
         <t>A sending BGP speaker advertises the information for one ore more
-        nexthops in a MNH TLV. </t>
+        nexthops in a MNH TLV.</t>
 
         <t>Information received in MNH TLV is used to create the Forwarding
-        state at receiving BGP speaker. </t>
+        state at receiving BGP speaker.</t>
 
         <t>The MNH Type code indicates how the information carried in the TLV
         is used at the receiving node.</t>
 
         <section anchor="err-mnh-tlv" title="Error Handling">
-          <t>If invalid Type Code 0 is received, the TLV is ignored
+          <t>If invalid Type Code 0 is received, the MNH TLV is ignored
           irrespective of "M bit", and continue to process rest of the
           update.</t>
 
           <t>If the received Type Code is incompatible for the prefix in BGP
-          NLRI, the TLV is considered invalid.</t>
+          NLRI, the MNH TLV is considered invalid.</t>
 
           <t>If an unrecognized Type Code is received, or processing of a
           recognized MNH TLV type results in an error, the TLV is considered
-          invalid. </t>
+          invalid.</t>
 
-          <t>Invalid TLV is handled based on the "M bit" on the TLV.</t>
+          <t>Invalid MNH TLV is handled based on the "M bit" on the MNH
+          TLV.</t>
 
-          <t>If the M bit is 0, then the TLV is ignored and continue to
-          process rest of the update. If M bit is 1, then the MNH attribute is
-          considered invalid, triggering the procedures in <xref
-          target="err-mnh-attr"/>. </t>
+          <t>If the M bit is 0, then the MNH TLV is ignored and continue to
+          process rest of the update. If M bit is 1, then the MNH attribute
+          containing this MNH TLV is considered invalid, triggering the
+          procedures in <xref target="err-mnh-attr"/>.</t>
         </section>
       </section>
 
@@ -580,12 +609,12 @@
           |R R R R R R R M|
           +-+-+-+-+-+-+-+-+
 
-           M: "Mandatory". 
+           M: "Mandatory".
               Value 1 indicates that this NFI TLV (Nexthop Leg) is mandatory.
               If this Nexthop Leg is not understood, the MNH TLV
               containing it is considered invalid.
 
-           R: "Reserved". 
+           R: "Reserved".
               MUST be set to zero, SHOULD be ignored by receiver.
 
  - Num-Nexthops
@@ -603,7 +632,7 @@
         <section anchor="err-nfi-tlv" title="Error Handling">
           <t>If Num-Nexthops in a received NFI is 0, it is considered invalid.
           Irrespective of M bit value, the NFI TLV is ignored and remaining
-          update is processed. </t>
+          update is processed.</t>
 
           <t>The receiving BGP speaker MAY consider the "Num-Nexthops" value
           in a Nexthop Forwarding Information TLV not acceptable, based on
@@ -661,12 +690,12 @@
           |R R R R R R R M|
           +-+-+-+-+-+-+-+-+
 
-           M: "Mandatory". 
+           M: "Mandatory".
               Value 1 indicates that this Forwarding Instruction is mandatory.
               If this instruction is not understood, the NFI TLV
               containing it is considered invalid.
 
-           R: "Reserved". 
+           R: "Reserved".
               MUST be set to zero, SHOULD be ignored by receiver.
 
  - Relative Pref (2 octets)
@@ -703,7 +732,7 @@
           <t>If a certain Forwarding Action is unable to be executed because
           the set of required arguments are not available, the FI TLV is
           considered Invalid. If a certain Forwarding Action is applied to an
-          incompatible NLRI, the FI TLV is considered Invalid. </t>
+          incompatible NLRI, the FI TLV is considered Invalid.</t>
 
           <t>An Invalid FI TLV is handled based on value of M bit on it. If
           the M bit is 0, the FI TLV is ignored, and remaining update continue
@@ -741,22 +770,22 @@
           |R R R R R E C M|
           +-+-+-+-+-+-+-+-+
 
-           M: "Mandatory". 
+           M: "Mandatory".
               Value 1 indicates that this argument is mandatory for the Forwarding Action.
               If this argument is not understood, the FI TLV containing it
               is considered invalid.
 
-           C: "Cummulative". 
+           C: "Cummulative".
               Request nodes to accumulate value in re-advertised MNH.
               By default Forwarding Arguments are not commulative, so C bit is 0
               unless otherwise specified by the forwarding argument type.
 
-           E: "Egress Attached". 
+           E: "Egress Attached".
               This bit is maintained when C bit is set to 1.
               E bit is set to 1 if a cummulative argument is being added to a route
               with empty AS-path.
 
-           R: "Reserved". 
+           R: "Reserved".
               MUST be set to zero, SHOULD be ignored by receiver.
 
 
@@ -777,7 +806,7 @@
         MNH also. The value of the FA in the advertised MNH MAY be derived
         from the value of the FA in the received MNH. The specific FA SHOULD
         define the procedure on how the accumulation of value happens for the
-        specific type of FA. </t>
+        specific type of FA.</t>
 
         <t>If a received MNH has a FA with C bit 1, and receiving speaker is
         unable to perform the accumulation of FA, it MUST NOT include the FA
@@ -789,8 +818,8 @@
         this BGP route. The E bit is set to 1 by the node adding the FA, if
         the AS-path on the route is empty. The E bit value received on a MNH
         MUST be propagated on the MNH added to the re-advertisement. This
-        allows the Ingress node to see the E bit value set by the Egress node.
-        </t>
+        allows the Ingress node to see the E bit value set by the Egress
+        node.</t>
 
         <section anchor="err-fa-tlv" title="Error Handling">
           <t>If an Invalid F.A. Type Code value of 0 is received, the TLV is
@@ -1158,7 +1187,7 @@ Following types of Forwarding Argument are defined by this document.
     This is a 32 bit identifier, associated with the Nexthop address.
     The Nexthop IP-address specified in "Endpoint Identifier" TLVs
     are resolved over tunnels of this color.
-    Defined in [BGP-CT] [draft-kaliraj-idr-bgp-classful-transport-planes]
+    Defined in [BGP-CT] [draft-ietf-idr-bgp-ct]
 
    - Load balance factor (2 octets)
           Balance Percentage
@@ -1269,7 +1298,7 @@ Following types of Forwarding Argument are defined by this document.
     This is a 32 bit identifier, associated with the Nexthop address.
     The Nexthop specified in Endpoint Identifier TLVs
     are resolved over tunnels of this color.
-  Defined in [BGP-CT] [draft-kaliraj-idr-bgp-classful-transport-planes]
+  Defined in [BGP-CT] [draft-ietf-idr-bgp-ct]
 </artwork>
             </figure>
 
@@ -2065,7 +2094,7 @@ Following types of Forwarding Argument are defined by this document.
       </reference>
 
       <reference anchor="BGP-CT"
-                 target="https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-ct-28">
+                 target="https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-ct-33">
         <front>
           <title abbrev="BGP-CT">BGP Classful Transport Planes</title>
 
@@ -2075,7 +2104,7 @@ Following types of Forwarding Argument are defined by this document.
           <author fullname="Natarajan" initials="" role="editor"
                   surname="Venkataraman"/>
 
-          <date day="17" month="03" year="2023"/>
+          <date day="25" month="04" year="2024"/>
         </front>
       </reference>
 
@@ -2296,29 +2325,82 @@ Following types of Forwarding Argument are defined by this document.
         order. And the solution will work for non-SRTE networks as-well.</t>
       </section>
 
-      <section title="Avoid Label Advertisement Oscillation Between Multihomed PEs.">
-        <t>In a MPLS network, a router may be multihomed to two PEs. The PEs
-        may re-advertise routes received from the router to the IBGP core with
-        self as nexthop and a "per nexthop" label. The PEs may also protect
-        failure of primary path to the router by using the IBGP path via the
-        other multihomed PE as a backup path.</t>
+      <section title="Problems with Multihomed PEs Protecting Each Other">
+        <figure anchor="Multihomed_PEs_Loop_Oscil" suppress-title="false"
+                title="Example Topology with Multihomed PEs Protecting Each Other">
+          <artwork align="left" xml:space="preserve">
+                        +-----[PE11]    [RR1]
+                        |       |        |
+                        |       +------+ |
+                     [CE1]             [P1]---[PE2]-----[CE2]
+                        |       +------+
+                        |       |
+                        +-----[PE12]
 
-        <t>In this scenario, label allocation oscillation may occur when one
-        PE advertises a new label to the other PE. Reception of a new label
-        results in change of nexthop, as the label is used as back nexthop
-        leg, and per-nexthop label allocation is in use. Thus a new label is
-        allocated and advertised. And when this new label is received by the
-        first PE, it allocates a new label in turn. This process repeats.</t>
+                203.0.113.11                             203.0.113.22
+                          ----  Traffic direction ----&gt;
+</artwork>
+        </figure>
 
-        <t>This oscillation can be stopped only if the primary path label
-        allocated by a PE does not depend on the primary path label advertised
-        by other PE. A PE needs to be able to advertise multiple labels, one
-        for use as primary path and another to be used as bacakup path by the
-        receiver.</t>
+        <t>In a MPLS network, a router CE1 may be multihomed to two PEs PE11
+        and PE12. The PEs may re-advertise routes received from CE1 to the
+        IBGP core with self as nexthop and a MPLS Label. The PEs may also
+        protect failure of primary path to router CE1 by using the IBGP path
+        via the other multihomed PE as a backup path. The advertised label has
+        forwarding state installed with both primary and backup paths</t>
 
-        <t>MNH attribute allows to advertise a Backup forwarding path label
-        using <xref target="upstr-bkp"/> in addition to Primary forwarding
-        path label using <xref target="upstr-prim"/></t>
+        <t>Following problems are possible in this scenario:</t>
+
+        <section title="Label oscillation between Multihomed PEs">
+          <t>If "per nexthop" label allocation mechanism is used at the PEs,
+          label allocation oscillation may occur when PE11 advertises a new
+          label to PE12. Reception of a new label results in change of nexthop
+          at PE12, as the received label is used as back nexthop leg, and
+          per-nexthop label allocation is in use. Thus a new label is
+          allocated by PE12 and advertised. And when this new label is
+          received by the PE11, it allocates a new label in turn. This process
+          repeats.</t>
+
+          <t>This problem can happen for either SAFI 4 or SAFI 128 routes.</t>
+
+          <t>This oscillation can be stopped only if the primary path label
+          allocated by a PE does not depend on the primary path label
+          advertised by other PE. A PE needs to be able to advertise multiple
+          labels, one for use as primary path and another to be used as
+          bacakup path by the receiver.</t>
+
+          <t>MNH attribute allows to advertise a Backup forwarding path label
+          using <xref target="upstr-bkp"/> in addition to Primary forwarding
+          path label using <xref target="upstr-prim"/>. This avoids this label
+          oscillation problem.</t>
+        </section>
+
+        <section title="Forwarding loop between Multihomed PEs">
+          <t>If "per VRF table" label allocation mechanism is used at the PEs,
+          a temporary forwarding loop may between PE11, PE12 in events like
+          the CE1 router going down, which will cause both PE11-CE1 and
+          PE12-CE1 links go down.</t>
+
+          <t>PE11 will forward traffic coming from PE2 on the backup path
+          towards PE12. That packet will perform IP lookup in the VRF at PE12,
+          which will result in the packet getting forwarded over the backup
+          path towards PE11. This loop will persist until global convergence
+          completes, with the PEs send BGP withdrawals for the routes received
+          from CE1 to each other.</t>
+
+          <t>This problem can happen for SAFI 128 routes.</t>
+
+          <t>This loop can also be avoided if the backup path label advertised
+          by a PE does not include the primary path label advertised by other
+          PE. A PE needs to be able to advertise multiple labels, one for use
+          as primary path and another to be used as bacakup path by the
+          receiver.</t>
+
+          <t>MNH attribute allows to advertise a Backup forwarding path label
+          using <xref target="upstr-bkp"/> in addition to Primary forwarding
+          path label using <xref target="upstr-prim"/>. This avoids this
+          forwarding loop problem also.</t>
+        </section>
       </section>
 
       <section title="Signaling Intent over PE-CE Attachment Circuit">

@@ -5,15 +5,15 @@
 Network Working Group                              K. Vairavakkalai, Ed.
 Internet-Draft                                              M. Jeyananth
 Intended status: Standards Track                  Juniper Networks, Inc.
-Expires: 12 February 2025                                     M. Nanduri
+Expires: 22 March 2025                                        M. Nanduri
                                                                Microsoft
                                                                  Lingala
                                                                     AT&T
-                                                          11 August 2024
+                                                       18 September 2024
 
 
                        BGP MultiNexthop Attribute
-                draft-ietf-idr-multinexthop-attribute-01
+                draft-ietf-idr-multinexthop-attribute-02
 
 Abstract
 
@@ -25,10 +25,11 @@ Abstract
    NLRI field.
 
    This document defines a new optional non-transitive BGP attribute
-   called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD,
-   that can be used to carry an ordered set of one or more Nexthops in
-   the same Update message, with all forwarding information being
-   carried in one attribute, scoped on a per nexthop basis.
+   called "MultiNexthop (MNH)" with IANA code TBD.  The MNH provides two
+   things: it allows carrying the Nexthop and related forwarding
+   information in one BGP attribute.  The MNH also enables carrying an
+   ordered set of multiple Nexthops in the same attribute, with
+   forwarding information scoped on a per Nexthop basis.
 
 Requirements Language
 
@@ -46,19 +47,23 @@ Status of This Memo
    working documents as Internet-Drafts.  The list of current Internet-
    Drafts is at https://datatracker.ietf.org/drafts/current/.
 
+
+
+
+
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                 [Page 1]
+
+Internet-Draft         BGP MultiNexthop attribute         September 2024
+
+
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-
-
-Vairavakkalai, et al.   Expires 12 February 2025                [Page 1]
-
-Internet-Draft         BGP MultiNexthop attribute            August 2024
-
-
-   This Internet-Draft will expire on 12 February 2025.
+   This Internet-Draft will expire on 22 March 2025.
 
 Copyright Notice
 
@@ -76,80 +81,94 @@ Copyright Notice
 
 Table of Contents
 
-   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   4
    2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   4
-     2.1.  Definitions . . . . . . . . . . . . . . . . . . . . . . .   4
+     2.1.  Definitions . . . . . . . . . . . . . . . . . . . . . . .   5
    3.  Motivation  . . . . . . . . . . . . . . . . . . . . . . . . .   5
    4.  Base Encoding And Protocol Procedures . . . . . . . . . . . .   6
-     4.1.  MultiNexthop Attribute  . . . . . . . . . . . . . . . . .   6
+     4.1.  MultiNexthop Attribute  . . . . . . . . . . . . . . . . .   7
        4.1.1.  Processing the MNH Header . . . . . . . . . . . . . .   9
        4.1.2.  Validation of MNH against Nexthop . . . . . . . . . .   9
        4.1.3.  Scope of Use, Origination and Propagation . . . . . .   9
-       4.1.4.  Error Handling  . . . . . . . . . . . . . . . . . . .  10
-     4.2.  MNH TLV . . . . . . . . . . . . . . . . . . . . . . . . .  11
-       4.2.1.  Error Handling  . . . . . . . . . . . . . . . . . . .  12
+       4.1.4.  Interaction with Forwarding Info in Rest of Update  .  10
+       4.1.5.  Error Handling  . . . . . . . . . . . . . . . . . . .  11
+     4.2.  MNH TLV . . . . . . . . . . . . . . . . . . . . . . . . .  12
+       4.2.1.  Error Handling  . . . . . . . . . . . . . . . . . . .  13
      4.3.  Nexthop Forwarding Information TLV  . . . . . . . . . . .  13
        4.3.1.  Error Handling  . . . . . . . . . . . . . . . . . . .  14
      4.4.  Forwarding Instruction TLV  . . . . . . . . . . . . . . .  14
-       4.4.1.  Error Handling  . . . . . . . . . . . . . . . . . . .  15
-     4.5.  Forwarding Argument TLV . . . . . . . . . . . . . . . . .  16
-       4.5.1.  Error Handling  . . . . . . . . . . . . . . . . . . .  18
-     4.6.  Interaction with Addpath  . . . . . . . . . . . . . . . .  18
-     4.7.  Path Selection Considerations . . . . . . . . . . . . . .  18
-       4.7.1.  Determining IGP Cost  . . . . . . . . . . . . . . . .  18
-   5.  TLVs Defined In This Document . . . . . . . . . . . . . . . .  19
-     5.1.  MNH TLVs  . . . . . . . . . . . . . . . . . . . . . . . .  19
-       5.1.1.  Primary Forwarding Path . . . . . . . . . . . . . . .  19
-       5.1.2.  Repair Forwarding Path  . . . . . . . . . . . . . . .  20
-     5.2.  Forwarding Actions in FI TLV  . . . . . . . . . . . . . .  21
-     5.3.  Forwarding Argument TLVs  . . . . . . . . . . . . . . . .  23
-       5.3.1.  Endpoint Identifier . . . . . . . . . . . . . . . . .  23
-       5.3.2.  Path Constraints  . . . . . . . . . . . . . . . . . .  24
-       5.3.3.  Payload Encapsulation Info  . . . . . . . . . . . . .  28
+       4.4.1.  Error Handling  . . . . . . . . . . . . . . . . . . .  16
+     4.5.  Forwarding Argument TLV . . . . . . . . . . . . . . . . .  17
+       4.5.1.  Error Handling  . . . . . . . . . . . . . . . . . . .  19
+     4.6.  Interaction with Addpath  . . . . . . . . . . . . . . . .  19
+     4.7.  Path Selection Considerations . . . . . . . . . . . . . .  19
+       4.7.1.  Determining IGP Cost  . . . . . . . . . . . . . . . .  19
+   5.  TLVs Defined In This Document . . . . . . . . . . . . . . . .  20
+     5.1.  MNH TLVs  . . . . . . . . . . . . . . . . . . . . . . . .  20
+       5.1.1.  Primary Forwarding Path . . . . . . . . . . . . . . .  20
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025                [Page 2]
+Vairavakkalai, et al.     Expires 22 March 2025                 [Page 2]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
-       5.3.4.  Endpoint Attributes . . . . . . . . . . . . . . . . .  33
-   6.  Scaling Considerations  . . . . . . . . . . . . . . . . . . .  35
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  36
-     7.1.  BGP Path Attributes . . . . . . . . . . . . . . . . . . .  36
-     7.2.  Capability Codes  . . . . . . . . . . . . . . . . . . . .  36
-     7.3.  BGP MultiNextHop Attribute  . . . . . . . . . . . . . . .  36
-       7.3.1.  MultiNextHop (MNH) TLV Types  . . . . . . . . . . . .  36
-       7.3.2.  Forwarding Action Types . . . . . . . . . . . . . . .  37
-       7.3.3.  Forwarding Argument Types . . . . . . . . . . . . . .  38
-       7.3.4.  Endpoint Types  . . . . . . . . . . . . . . . . . . .  39
-       7.3.5.  Path Constrain Types  . . . . . . . . . . . . . . . .  40
-       7.3.6.  Encapsulation Types . . . . . . . . . . . . . . . . .  41
-       7.3.7.  Endpoint Attribute Types  . . . . . . . . . . . . . .  42
-   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  43
-   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  43
-   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  44
-   References  . . . . . . . . . . . . . . . . . . . . . . . . . . .  44
-     Normative References  . . . . . . . . . . . . . . . . . . . . .  44
-     Informative References  . . . . . . . . . . . . . . . . . . . .  45
-   Appendix A.  Example of Usecases  . . . . . . . . . . . . . . . .  46
-     A.1.  Signaling WECMP to Ingress Node . . . . . . . . . . . . .  46
+       5.1.2.  Repair Forwarding Path  . . . . . . . . . . . . . . .  21
+     5.2.  Forwarding Actions in FI TLV  . . . . . . . . . . . . . .  22
+     5.3.  Forwarding Argument TLVs  . . . . . . . . . . . . . . . .  24
+       5.3.1.  Endpoint Identifier . . . . . . . . . . . . . . . . .  24
+       5.3.2.  Path Constraints  . . . . . . . . . . . . . . . . . .  25
+       5.3.3.  Payload Encapsulation Info  . . . . . . . . . . . . .  29
+       5.3.4.  Endpoint Attributes . . . . . . . . . . . . . . . . .  34
+   6.  Scaling Considerations  . . . . . . . . . . . . . . . . . . .  36
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  37
+     7.1.  BGP Path Attributes . . . . . . . . . . . . . . . . . . .  37
+     7.2.  Capability Codes  . . . . . . . . . . . . . . . . . . . .  37
+     7.3.  BGP MultiNextHop Attribute  . . . . . . . . . . . . . . .  37
+       7.3.1.  MultiNextHop (MNH) TLV Types  . . . . . . . . . . . .  37
+       7.3.2.  Forwarding Action Types . . . . . . . . . . . . . . .  38
+       7.3.3.  Forwarding Argument Types . . . . . . . . . . . . . .  39
+       7.3.4.  Endpoint Types  . . . . . . . . . . . . . . . . . . .  40
+       7.3.5.  Path Constrain Types  . . . . . . . . . . . . . . . .  41
+       7.3.6.  Encapsulation Types . . . . . . . . . . . . . . . . .  42
+       7.3.7.  Endpoint Attribute Types  . . . . . . . . . . . . . .  43
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  44
+   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  44
+   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  45
+   References  . . . . . . . . . . . . . . . . . . . . . . . . . . .  45
+     Normative References  . . . . . . . . . . . . . . . . . . . . .  45
+     Informative References  . . . . . . . . . . . . . . . . . . . .  46
+   Appendix A.  Example of Usecases  . . . . . . . . . . . . . . . .  47
+     A.1.  Signaling WECMP to Ingress Node . . . . . . . . . . . . .  47
      A.2.  Signaling Optimal Forwarding Exitpoints to Ingress
-            Node . . . . . . . . . . . . . . . . . . . . . . . . . .  47
-     A.3.  Load balancing to multiple CEs in a VRF . . . . . . . . .  47
+            Node . . . . . . . . . . . . . . . . . . . . . . . . . .  48
+     A.3.  Load balancing to multiple CEs in a VRF . . . . . . . . .  48
      A.4.  Signaling Desired Forwarding Behavior for MPLS Upstream
-            labels at Receiving Node . . . . . . . . . . . . . . . .  48
-     A.5.  Load Balancing over EBGP Parallel Links . . . . . . . . .  48
-     A.6.  Flowspec Routes with Multiple "Redirect IP" next hops . .  49
-     A.7.  Color-Only Resolution next hop  . . . . . . . . . . . . .  49
-     A.8.  Avoid Label Advertisement Oscillation Between Multihomed
-            PEs. . . . . . . . . . . . . . . . . . . . . . . . . . .  49
-     A.9.  Signaling Intent over PE-CE Attachment Circuit  . . . . .  50
-       A.9.1.  Using DSCP in MultiNexthop Attribute  . . . . . . . .  50
-       A.9.2.  MPLS-enabled CE . . . . . . . . . . . . . . . . . . .  51
-     A.10. 4PE - Signal MPLS Label for IPv4 Unicast routes . . . . .  53
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  54
+            labels at Receiving Node . . . . . . . . . . . . . . . .  49
+     A.5.  Load Balancing over EBGP Parallel Links . . . . . . . . .  49
+     A.6.  Flowspec Routes with Multiple "Redirect IP" next hops . .  50
+     A.7.  Color-Only Resolution next hop  . . . . . . . . . . . . .  50
+     A.8.  Problems with Multihomed PEs Protecting Each Other  . . .  50
+       A.8.1.  Label oscillation between Multihomed PEs  . . . . . .  51
+       A.8.2.  Forwarding loop between Multihomed PEs  . . . . . . .  51
+     A.9.  Signaling Intent over PE-CE Attachment Circuit  . . . . .  52
+       A.9.1.  Using DSCP in MultiNexthop Attribute  . . . . . . . .  52
+       A.9.2.  MPLS-enabled CE . . . . . . . . . . . . . . . . . . .  53
+     A.10. 4PE - Signal MPLS Label for IPv4 Unicast routes . . . . .  55
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  56
+
+
+
+
+
+
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                 [Page 3]
+
+Internet-Draft         BGP MultiNexthop attribute         September 2024
+
 
 1.  Introduction
 
@@ -160,21 +179,12 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    is scattered across various attributes, extended communities or the
    NLRI field.
 
-
-
-
-
-
-Vairavakkalai, et al.   Expires 12 February 2025                [Page 3]
-
-Internet-Draft         BGP MultiNexthop attribute            August 2024
-
-
    This document defines a new optional non-transitive BGP attribute
-   called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD,
-   that can be used to carry an ordered set of one or more Nexthops in
-   the same route, with all forwarding information being carried in one
-   attribute, scoped on a per nexthop basis.
+   called "MultiNexthop (MNH)" with IANA code TBD.  The MNH provides two
+   things: it allows carrying the Nexthop and related forwarding
+   information in one BGP attribute.  The MNH also enables carrying an
+   ordered set of multiple Nexthops in the same attribute, with
+   forwarding information scoped on a per Nexthop basis.
 
 
 2.  Terminology
@@ -209,6 +219,13 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
    NFI: Nexthop Forwarding Information
 
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                 [Page 4]
+
+Internet-Draft         BGP MultiNexthop attribute         September 2024
+
+
    FI: Forwarding Instruction
 
    FA: Forwarding Argument
@@ -217,14 +234,6 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
    MULTI_NEXT_HOP (aka MNH): BGP MultiNexthop attribute.  The new
    attribute defined by this document.
-
-
-
-
-Vairavakkalai, et al.   Expires 12 February 2025                [Page 4]
-
-Internet-Draft         BGP MultiNexthop attribute            August 2024
-
 
    MNH TLV: Top level TLV contained in a MULTI_NEXT_HOP.
 
@@ -241,8 +250,7 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    nexthop is scattered across various attributes, extended communities
    or the NLRI field.  On some other address families like Flowspec,
    nexthop address is carried without using the nexthop attribute, in
-   one or more extended communities of specific type.  It may be
-   desirable to carry them scoped in a single attribute.
+   one or more extended communities of specific type.
 
    It may be desirable to carry the forwarding information for a nexthop
    scoped in a single attribute, and uniformly for all address families.
@@ -263,6 +271,17 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    nexthop on a BGP route of any family, and express relationship
    between them.
 
+
+
+
+
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                 [Page 5]
+
+Internet-Draft         BGP MultiNexthop attribute         September 2024
+
+
    This document defines a new optional non-transitive BGP attribute
    "MultiNexthop (MNH)" that can be used for these purposes.  The MNH
    attribute can be used in any BGP family that wants to carry one or
@@ -274,13 +293,6 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    Unicast, Flowspec) alike.  Such that, mechanisms at the transport
    layer can work uniformly on labeled and unlabled BGP families to
    realize various usecases.
-
-
-
-Vairavakkalai, et al.   Expires 12 February 2025                [Page 5]
-
-Internet-Draft         BGP MultiNexthop attribute            August 2024
-
 
 4.  Base Encoding And Protocol Procedures
 
@@ -318,6 +330,14 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    A MNH TLV contains a Type and one unit of "Nexthop Forwarding
    Information" (NFI TLV).
 
+
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                 [Page 6]
+
+Internet-Draft         BGP MultiNexthop attribute         September 2024
+
+
    A NFI TLV contains one or more "Forwarding Instructions" (FI TLVs).
 
    A FI TLV contains a "Forwarding Action" code and one more "Forwarding
@@ -327,16 +347,6 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    "Forwarding Action".
 
 4.1.  MultiNexthop Attribute
-
-
-
-
-
-
-Vairavakkalai, et al.   Expires 12 February 2025                [Page 6]
-
-Internet-Draft         BGP MultiNexthop attribute            August 2024
-
 
         0                   1                   2                   3
         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -379,19 +389,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-
-
-
-
-
-
-
-
-
-
-Vairavakkalai, et al.   Expires 12 February 2025                [Page 7]
+Vairavakkalai, et al.     Expires 22 March 2025                 [Page 7]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
  MNH Header:
@@ -445,9 +445,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025                [Page 8]
+Vairavakkalai, et al.     Expires 22 March 2025                 [Page 8]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 4.1.1.  Processing the MNH Header
@@ -496,14 +496,14 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    The MNH attribute is intended to be used in a BGP free core, between
    egress and ingress BGP speakers that understand this attribute.
    These BGP speakers may have an intra-AS or inter-AS BGP session
-   between them.  On propagating the route with nexthop altered, a new
-   MNH attribute MAY be added by the advertising speaker.
+   between them.
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025                [Page 9]
+
+Vairavakkalai, et al.     Expires 22 March 2025                 [Page 9]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    To avoid un-intentionally leaking the MNH to another AS, via a BGP
@@ -546,21 +546,53 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    originating BGP speaker.  The "Advertising PNH field" in the MNH is
    set to the Nexthop field in BGP route being re-advertised.
 
-4.1.4.  Error Handling
+4.1.4.  Interaction with Forwarding Info in Rest of Update
+
+   A type of forwarding information may be carried in both the MNH as-
+   well as remaining portions of the Update message.  E.g., AIGP, Link
+   Bandwidth Extended Community.
+
+
+
+
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 10]
+
+Internet-Draft         BGP MultiNexthop attribute         September 2024
+
+
+   The instance of forwarding information carried outside the MNH is
+   associated with the BGP Nexthop (attribute codes 3, 14).  The
+   instance of forwarding information carried inside the MNH attribute
+   is more specific, and overrides the one carried outside the MNH.  It
+   is associated with the Endpoint (Section 5.3.1) in Forwarding Info
+   TLV (Section 4.4) that is part of same MNH attribute.
+
+   This rule holds good for any type of forwarding information carried
+   in the MNH, unless specified otherwise by that type of forwarding
+   information.
+
+   An exception to this rule is the MPLS Label stack information carried
+   in [RFC8277] NLRI field.  The Labels carried in the NLRI are imposed
+   as inner labels with the Encapsulation Info specified in Encap Info
+   TLV (Section 5.3.3) used as outer encapsulation.
+
+4.1.5.  Error Handling
 
    A TLV or sub-TLV of a certain Type in a MNH attribute can occur only
    once, unless specified otherwise by that type value.  If multiple
    instances of such TLV or sub-TLV is received, the instances other
    than the first occurance are ignored.
 
-
-
-
-
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 10]
-
-Internet-Draft         BGP MultiNexthop attribute            August 2024
-
+   MNH employs a hierarchical error detection mechanism, where an error
+   in lower layer TLVs is percolated upwards to the MNH attribute, based
+   on the M bit.  If the M bit in a TLV is 0, any error in the TLV is
+   ignored and continue processing.  If the M bit is 1, the TLV is
+   considered invalid, and the error exception percolates up to the
+   upper layer TLV, which takes the decision again based on it's M bit,
+   until the MNH attribute top level.  If the M bits all the way to the
+   top were set to 1, then the error makes the MNH invalid.
 
    If processing of a received MNH attribute resulted in an error, then
    the "M bit" is used to decide the action.  If the M bit is 0, then
@@ -568,10 +600,6 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    MUST be used, and continue to process rest of the update.  If M bit
    is 1, then the BGP Route containing the MNH MUST be considered
    Unusable.
-
-   MNH employs a hierarchical error detection mechanism, where an error
-   in lower layer TLVs is percolated upwards to the MNH attribute, based
-   on the M bit.
 
    Implementations MAY provide policy configuration to set M bit to 0 on
    a MNH attribute being added, this helps with testing impact of the
@@ -582,6 +610,13 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    The definition of a certain type of TLV or Sub-TLV in the MNH should
    specify in it's procedures, the value of M bit to be used.  An
    implementation MAY provide configuration to set or reset the M bit.
+
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 11]
+
+Internet-Draft         BGP MultiNexthop attribute         September 2024
+
 
 4.2.  MNH TLV
 
@@ -598,25 +633,6 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
                             Figure 3: MNH TLV
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 11]
-
-Internet-Draft         BGP MultiNexthop attribute            August 2024
-
 
     - MNH-TLV Flags (1 octet)
 
@@ -635,8 +651,6 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
               R: "Reserved".
                  MUST be set to zero, SHOULD be ignored by receiver.
 
-    This document defines the following MNH TLV types:
-
     - MNH Type Code (1 octet)
          Type of MNH TLV. 0 is Reserved.
 
@@ -652,33 +666,35 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    Information received in MNH TLV is used to create the Forwarding
    state at receiving BGP speaker.
 
+
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 12]
+
+Internet-Draft         BGP MultiNexthop attribute         September 2024
+
+
    The MNH Type code indicates how the information carried in the TLV is
    used at the receiving node.
 
 4.2.1.  Error Handling
 
-   If invalid Type Code 0 is received, the TLV is ignored irrespective
-   of "M bit", and continue to process rest of the update.
+   If invalid Type Code 0 is received, the MNH TLV is ignored
+   irrespective of "M bit", and continue to process rest of the update.
 
    If the received Type Code is incompatible for the prefix in BGP NLRI,
-   the TLV is considered invalid.
+   the MNH TLV is considered invalid.
 
    If an unrecognized Type Code is received, or processing of a
    recognized MNH TLV type results in an error, the TLV is considered
    invalid.
 
+   Invalid MNH TLV is handled based on the "M bit" on the MNH TLV.
 
-
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 12]
-
-Internet-Draft         BGP MultiNexthop attribute            August 2024
-
-
-   Invalid TLV is handled based on the "M bit" on the TLV.
-
-   If the M bit is 0, then the TLV is ignored and continue to process
-   rest of the update.  If M bit is 1, then the MNH attribute is
-   considered invalid, triggering the procedures in Section 4.1.4.
+   If the M bit is 0, then the MNH TLV is ignored and continue to
+   process rest of the update.  If M bit is 1, then the MNH attribute
+   containing this MNH TLV is considered invalid, triggering the
+   procedures in Section 4.1.5.
 
 4.3.  Nexthop Forwarding Information TLV
 
@@ -697,6 +713,22 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
               Figure 4: Nexthop Forwarding Information TLV
+
+
+
+
+
+
+
+
+
+
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 13]
+
+Internet-Draft         BGP MultiNexthop attribute         September 2024
+
 
  - NFI Flags (1 octet)
 
@@ -722,14 +754,6 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
    M bit on a NFI TLV SHOULD be set to 1.
 
-
-
-
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 13]
-
-Internet-Draft         BGP MultiNexthop attribute            August 2024
-
-
 4.3.1.  Error Handling
 
    If Num-Nexthops in a received NFI is 0, it is considered invalid.
@@ -754,6 +778,13 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
    given below.  The arguments are denoted by "Forwarding Argument
    TLVs".  The Forwarding Argument TLVs takes appropriate values based
    on the FwdAction.
+
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 14]
+
+Internet-Draft         BGP MultiNexthop attribute         September 2024
+
 
    Each FwdAction should note the Arguments needed to complete the
    action.  Any extranous arguments should be ignored.  If the minimum
@@ -781,9 +812,34 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 14]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 15]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
   - F.I. Flags (1 octet)
@@ -837,9 +893,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 15]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 16]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    An Invalid FI TLV is handled based on value of M bit on it.  If the M
@@ -893,9 +949,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 16]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 17]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
  - F.A. Flags (1 octet)
@@ -949,9 +1005,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 17]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 18]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    A FA that need to be accumulated end-to-end may want to know if the
@@ -1005,9 +1061,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 18]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 19]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 5.  TLVs Defined In This Document
@@ -1061,9 +1117,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 19]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 20]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    This TLV describes forwarding state to be programmed at receiving
@@ -1117,9 +1173,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 20]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 21]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
         0                   1                   2                   3
@@ -1173,9 +1229,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 21]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 22]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 Following Forwarding Actions are defined by this document.
@@ -1229,9 +1285,9 @@ Following Forwarding Actions are defined by this document.
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 22]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 23]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    If an incompatible FwdAction is received for a prefix-type, or an
@@ -1285,9 +1341,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 23]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 24]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
     - F.A. Flags (1 octet)
@@ -1341,9 +1397,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 24]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 25]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    - F.A. Flags (1 octet)
@@ -1372,7 +1428,7 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
     This is a 32 bit identifier, associated with the Nexthop address.
     The Nexthop IP-address specified in "Endpoint Identifier" TLVs
     are resolved over tunnels of this color.
-    Defined in [BGP-CT] [draft-kaliraj-idr-bgp-classful-transport-planes]
+    Defined in [BGP-CT] [draft-ietf-idr-bgp-ct]
 
    - Load balance factor (2 octets)
           Balance Percentage
@@ -1397,9 +1453,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 25]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 26]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    0                   1                   2                   3
@@ -1453,9 +1509,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 26]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 27]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 5.3.2.2.  Transport Class ID (Color)
@@ -1475,29 +1531,29 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
    The format of the Transport Class ID Sub-TLV is as follows:
 
-  0                   1                   2                   3
-  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- |  F.A. Flags   |     F.A. Type Code = 2        |  Length       |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- |    Length     |ConstrainType=2|  Len = 4      | Transport..   |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- |  .. Class ID (4 bytes)        |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  F.A. Flags   |     F.A. Type Code = 2        |  Length       |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |    Length     |ConstrainType=2|  Len = 4      | Transport..   |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  .. Class ID (4 bytes)        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-   - F.A. Flags (1 octet)
-      As defined in Forwarding Argument TLV.
+     - F.A. Flags (1 octet)
+        As defined in Forwarding Argument TLV.
 
-   - Length (2 octets)
-        Length in bytes of Value field.
+     - Length (2 octets)
+          Length in bytes of Value field.
 
-   - Transport Class ID (Color):
-     This is a 32 bit identifier, associated with the Nexthop address.
-     The Nexthop specified in Endpoint Identifier TLVs
-     are resolved over tunnels of this color.
-   Defined in [BGP-CT] [draft-kaliraj-idr-bgp-classful-transport-planes]
+     - Transport Class ID (Color):
+       This is a 32 bit identifier, associated with the Nexthop address.
+       The Nexthop specified in Endpoint Identifier TLVs
+       are resolved over tunnels of this color.
+     Defined in [BGP-CT] [draft-ietf-idr-bgp-ct]
 
-                 Figure 12: Transport Class ID (Color)
+                   Figure 12: Transport Class ID (Color)
 
 
    This TLV would be valid with Forwarding Instructions TLV with
@@ -1509,9 +1565,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 27]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 28]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    0                   1                   2                   3
@@ -1565,9 +1621,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 28]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 29]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
     0                   1                   2                   3
@@ -1621,9 +1677,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 29]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 30]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
                          Figure 15: MPLS Label Info
@@ -1677,9 +1733,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 30]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 31]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
                     Figure 16: SR MPLS Label Index Info
@@ -1733,9 +1789,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 31]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 32]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
      - F.A. Flags (1 octet)
@@ -1789,9 +1845,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 32]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 33]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 5.3.4.  Endpoint Attributes
@@ -1845,9 +1901,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 33]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 34]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
     0                   1                   2                   3
@@ -1901,9 +1957,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 34]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 35]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
  0                   1                   2                   3
@@ -1957,9 +2013,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 35]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 36]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    To keep the scaling limits under check, a BGP speaker MAY keep
@@ -2013,9 +2069,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 36]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 37]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    Under "Border Gateway Protocol (BGP) Parameters",
@@ -2069,9 +2125,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 37]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 38]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
     Under "Border Gateway Protocol (BGP) Parameters",
@@ -2125,9 +2181,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 38]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 39]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
     Under "Border Gateway Protocol (BGP) Parameters",
@@ -2181,9 +2237,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 39]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 40]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
     Under "Border Gateway Protocol (BGP) Parameters",
@@ -2237,9 +2293,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 40]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 41]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
     Under "Border Gateway Protocol (BGP) Parameters",
@@ -2293,9 +2349,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 41]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 42]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
       Under "Border Gateway Protocol (BGP) Parameters",
@@ -2349,9 +2405,9 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 42]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 43]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
     Under "Border Gateway Protocol (BGP) Parameters",
@@ -2405,9 +2461,9 @@ Contributors
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 43]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 44]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    Reshma Das
@@ -2461,9 +2517,9 @@ Normative References
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 44]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 45]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    [RFC7911]  Walton, D., Retana, A., Chen, E., and J. Scudder,
@@ -2483,9 +2539,9 @@ Informative References
               ietf-idr-add-paths-guidelines-08#section-2>.
 
    [BGP-CT]   Vairavakkalai, Ed. and Venkataraman, Ed., "BGP Classful
-              Transport Planes", 17 March 2023,
+              Transport Planes", 25 April 2024,
               <https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-
-              ct-28>.
+              ct-33>.
 
    [FLWSPC-REDIR-IP]
               Simpson, Ed., "BGP Flow-Spec Redirect to IP Action", 2
@@ -2517,9 +2573,9 @@ Informative References
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 45]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 46]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 Appendix A.  Example of Usecases
@@ -2573,9 +2629,9 @@ A.1.  Signaling WECMP to Ingress Node
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 46]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 47]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 A.2.  Signaling Optimal Forwarding Exitpoints to Ingress Node
@@ -2629,9 +2685,9 @@ A.3.  Load balancing to multiple CEs in a VRF
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 47]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 48]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    PE1 would typically advertise to RR1 only the best path for prefix
@@ -2685,9 +2741,9 @@ A.5.  Load Balancing over EBGP Parallel Links
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 48]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 49]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 A.6.  Flowspec Routes with Multiple "Redirect IP" next hops
@@ -2721,30 +2777,51 @@ A.7.  Color-Only Resolution next hop
    fallback order.  And the solution will work for non-SRTE networks as-
    well.
 
-A.8.  Avoid Label Advertisement Oscillation Between Multihomed PEs.
+A.8.  Problems with Multihomed PEs Protecting Each Other
 
-   In a MPLS network, a router may be multihomed to two PEs.  The PEs
-   may re-advertise routes received from the router to the IBGP core
-   with self as nexthop and a "per nexthop" label.  The PEs may also
-   protect failure of primary path to the router by using the IBGP path
-   via the other multihomed PE as a backup path.
+                           +-----[PE11]    [RR1]
+                           |       |        |
+                           |       +------+ |
+                        [CE1]             [P1]---[PE2]-----[CE2]
+                           |       +------+
+                           |       |
+                           +-----[PE12]
 
-   In this scenario, label allocation oscillation may occur when one PE
-   advertises a new label to the other PE.  Reception of a new label
-   results in change of nexthop, as the label is used as back nexthop
-   leg, and per-nexthop label allocation is in use.  Thus a new label is
-   allocated and advertised.  And when this new label is received by the
-   first PE, it allocates a new label in turn.  This process repeats.
+                   203.0.113.11                             203.0.113.22
+                             ----  Traffic direction ---->
 
-
+   Figure 24: Example Topology with Multihomed PEs Protecting Each Other
 
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 49]
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 50]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
+
+   In a MPLS network, a router CE1 may be multihomed to two PEs PE11 and
+   PE12.  The PEs may re-advertise routes received from CE1 to the IBGP
+   core with self as nexthop and a MPLS Label.  The PEs may also protect
+   failure of primary path to router CE1 by using the IBGP path via the
+   other multihomed PE as a backup path.  The advertised label has
+   forwarding state installed with both primary and backup paths
+
+   Following problems are possible in this scenario:
+
+A.8.1.  Label oscillation between Multihomed PEs
+
+   If "per nexthop" label allocation mechanism is used at the PEs, label
+   allocation oscillation may occur when PE11 advertises a new label to
+   PE12.  Reception of a new label results in change of nexthop at PE12,
+   as the received label is used as back nexthop leg, and per-nexthop
+   label allocation is in use.  Thus a new label is allocated by PE12
+   and advertised.  And when this new label is received by the PE11, it
+   allocates a new label in turn.  This process repeats.
+
+   This problem can happen for either SAFI 4 or SAFI 128 routes.
 
    This oscillation can be stopped only if the primary path label
    allocated by a PE does not depend on the primary path label
@@ -2754,7 +2831,41 @@ Internet-Draft         BGP MultiNexthop attribute            August 2024
 
    MNH attribute allows to advertise a Backup forwarding path label
    using Section 5.1.2 in addition to Primary forwarding path label
-   using Section 5.1.1
+   using Section 5.1.1.  This avoids this label oscillation problem.
+
+A.8.2.  Forwarding loop between Multihomed PEs
+
+   If "per VRF table" label allocation mechanism is used at the PEs, a
+   temporary forwarding loop may between PE11, PE12 in events like the
+   CE1 router going down, which will cause both PE11-CE1 and PE12-CE1
+   links go down.
+
+   PE11 will forward traffic coming from PE2 on the backup path towards
+   PE12.  That packet will perform IP lookup in the VRF at PE12, which
+   will result in the packet getting forwarded over the backup path
+   towards PE11.  This loop will persist until global convergence
+   completes, with the PEs send BGP withdrawals for the routes received
+   from CE1 to each other.
+
+   This problem can happen for SAFI 128 routes.
+
+
+
+
+
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 51]
+
+Internet-Draft         BGP MultiNexthop attribute         September 2024
+
+
+   This loop can also be avoided if the backup path label advertised by
+   a PE does not include the primary path label advertised by other PE.
+   A PE needs to be able to advertise multiple labels, one for use as
+   primary path and another to be used as bacakup path by the receiver.
+
+   MNH attribute allows to advertise a Backup forwarding path label
+   using Section 5.1.2 in addition to Primary forwarding path label
+   using Section 5.1.1.  This avoids this forwarding loop problem also.
 
 A.9.  Signaling Intent over PE-CE Attachment Circuit
 
@@ -2776,7 +2887,7 @@ A.9.  Signaling Intent over PE-CE Attachment Circuit
                    203.0.113.11                             203.0.113.22
                              ----  Traffic direction ---->
 
-                Figure 24: Example Topology with PE-CE Links
+                Figure 25: Example Topology with PE-CE Links
 
 A.9.1.  Using DSCP in MultiNexthop Attribute
 
@@ -2797,9 +2908,10 @@ A.9.1.  Using DSCP in MultiNexthop Attribute
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 50]
+
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 52]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    Let PE1 be configured to map DSCP1 to Gold Transport class, and DSCP2
@@ -2853,9 +2965,9 @@ A.9.2.  MPLS-enabled CE
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 51]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 53]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    received from CE1, PVL1 Swaps to label VL1 and pushes the BGP CT
@@ -2909,9 +3021,9 @@ A.9.2.1.  Secure MPLS Forwarding on Inter-AS Link
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 52]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 54]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 A.10.  4PE - Signal MPLS Label for IPv4 Unicast routes
@@ -2933,9 +3045,9 @@ A.10.  4PE - Signal MPLS Label for IPv4 Unicast routes
                  P1: PHP node.
                  PE1: Egress PE.
 
-                 Figure 25: 4PE Network with Pure IPv6 Core
+                 Figure 26: 4PE Network with Pure IPv6 Core
 
-   Figure 25 shows a 4PE network with pure IPv6 core, PE1 is the egress
+   Figure 26 shows a 4PE network with pure IPv6 core, PE1 is the egress
    PE connected to penultimate hop node P1.  PE1 to PE2 have some IPv6
    core tunneling protocol like LDPv6.  When PE1 has advertised Implicit
    Null label in LDPv6, some implementations of P1 may not be able to
@@ -2965,9 +3077,9 @@ A.10.  4PE - Signal MPLS Label for IPv4 Unicast routes
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 53]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 55]
 
-Internet-Draft         BGP MultiNexthop attribute            August 2024
+Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    PHP situation need to advertise Label using MNH.  The service layer
@@ -3021,4 +3133,4 @@ Authors' Addresses
 
 
 
-Vairavakkalai, et al.   Expires 12 February 2025               [Page 54]
+Vairavakkalai, et al.     Expires 22 March 2025                [Page 56]

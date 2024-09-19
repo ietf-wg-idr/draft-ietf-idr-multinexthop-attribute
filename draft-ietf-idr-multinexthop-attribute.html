@@ -16,13 +16,14 @@
       (code 14). Forwarding information related to the nexthop is scattered
       across various attributes, extended communities or the NLRI field. 
        This document defines a new optional non-transitive BGP attribute
-      called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD, that
-      can be used to carry an ordered set of one or more Nexthops in the same
-      Update message, with all forwarding information being carried in one
-      attribute, scoped on a per nexthop basis. 
+      called "MultiNexthop (MNH)" with IANA code TBD. The MNH provides two
+      things: it allows carrying the Nexthop and related forwarding
+      information in one BGP attribute. The MNH also enables carrying an
+      ordered set of multiple Nexthops in the same attribute, with forwarding
+      information scoped on a per Nexthop basis. 
     ' name="description">
 <meta content="xml2rfc 3.18.2" name="generator">
-<meta content="draft-ietf-idr-multinexthop-attribute-01" name="ietf.draft">
+<meta content="draft-ietf-idr-multinexthop-attribute-02" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.18.2
     Python 3.9.6
@@ -1216,11 +1217,11 @@ li > p:last-of-type:only-child {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">BGP MultiNexthop attribute</td>
-<td class="right">August 2024</td>
+<td class="right">September 2024</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Vairavakkalai, et al.</td>
-<td class="center">Expires 12 February 2025</td>
+<td class="center">Expires 22 March 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1230,15 +1231,15 @@ li > p:last-of-type:only-child {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">Network Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-ietf-idr-multinexthop-attribute-01</dd>
+<dd class="internet-draft">draft-ietf-idr-multinexthop-attribute-02</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-08-11" class="published">11 August 2024</time>
+<time datetime="2024-09-18" class="published">18 September 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-02-12">12 February 2025</time></dd>
+<dd class="expires"><time datetime="2025-03-22">22 March 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1270,10 +1271,11 @@ li > p:last-of-type:only-child {
       (code 14). Forwarding information related to the nexthop is scattered
       across various attributes, extended communities or the NLRI field.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 <p id="section-abstract-2">This document defines a new optional non-transitive BGP attribute
-      called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD, that
-      can be used to carry an ordered set of one or more Nexthops in the same
-      Update message, with all forwarding information being carried in one
-      attribute, scoped on a per nexthop basis.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+      called "MultiNexthop (MNH)" with IANA code TBD. The MNH provides two
+      things: it allows carrying the Nexthop and related forwarding
+      information in one BGP attribute. The MNH also enables carrying an
+      ordered set of multiple Nexthops in the same attribute, with forwarding
+      information scoped on a per Nexthop basis.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 </section>
 <section class="note" id="section-note.1">
       <h2 id="name-requirements-language">
@@ -1302,7 +1304,7 @@ li > p:last-of-type:only-child {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 February 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 22 March 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1361,7 +1363,10 @@ li > p:last-of-type:only-child {
                     <p id="section-toc.1-1.4.2.1.2.3.1"><a href="#section-4.1.3" class="auto internal xref">4.1.3</a>.  <a href="#name-scope-of-use-origination-an" class="internal xref">Scope of Use, Origination and Propagation</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.4">
-                    <p id="section-toc.1-1.4.2.1.2.4.1"><a href="#section-4.1.4" class="auto internal xref">4.1.4</a>.  <a href="#name-error-handling" class="internal xref">Error Handling</a></p>
+                    <p id="section-toc.1-1.4.2.1.2.4.1"><a href="#section-4.1.4" class="auto internal xref">4.1.4</a>.  <a href="#name-interaction-with-forwarding" class="internal xref">Interaction with Forwarding Info in Rest of Update</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.5">
+                    <p id="section-toc.1-1.4.2.1.2.5.1"><a href="#section-4.1.5" class="auto internal xref">4.1.5</a>.  <a href="#name-error-handling" class="internal xref">Error Handling</a></p>
 </li>
                 </ul>
 </li>
@@ -1531,7 +1536,15 @@ li > p:last-of-type:only-child {
                 <p id="section-toc.1-1.12.2.7.1"><a href="#appendix-A.7" class="auto internal xref">A.7</a>.  <a href="#name-color-only-resolution-next-" class="internal xref">Color-Only Resolution next hop</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.8">
-                <p id="section-toc.1-1.12.2.8.1"><a href="#appendix-A.8" class="auto internal xref">A.8</a>.  <a href="#name-avoid-label-advertisement-o" class="internal xref">Avoid Label Advertisement Oscillation Between Multihomed PEs.</a></p>
+                <p id="section-toc.1-1.12.2.8.1"><a href="#appendix-A.8" class="auto internal xref">A.8</a>.  <a href="#name-problems-with-multihomed-pe" class="internal xref">Problems with Multihomed PEs Protecting Each Other</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.8.2.1">
+                    <p id="section-toc.1-1.12.2.8.2.1.1"><a href="#appendix-A.8.1" class="auto internal xref">A.8.1</a>.  <a href="#name-label-oscillation-between-m" class="internal xref">Label oscillation between Multihomed PEs</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.8.2.2">
+                    <p id="section-toc.1-1.12.2.8.2.2.1"><a href="#appendix-A.8.2" class="auto internal xref">A.8.2</a>.  <a href="#name-forwarding-loop-between-mul" class="internal xref">Forwarding loop between Multihomed PEs</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.9">
                 <p id="section-toc.1-1.12.2.9.1"><a href="#appendix-A.9" class="auto internal xref">A.9</a>.  <a href="#name-signaling-intent-over-pe-ce" class="internal xref">Signaling Intent over PE-CE Attachment Circuit</a></p>
@@ -1566,10 +1579,11 @@ li > p:last-of-type:only-child {
       (code 14). Forwarding information related to the nexthop is scattered
       across various attributes, extended communities or the NLRI field.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">This document defines a new optional non-transitive BGP attribute
-      called "MultiNexthop (MNH)" with IANA BGP attribute type code TBD, that
-      can be used to carry an ordered set of one or more Nexthops in the same
-      route, with all forwarding information being carried in one attribute,
-      scoped on a per nexthop basis.<a href="#section-1-2" class="pilcrow">¶</a></p>
+      called "MultiNexthop (MNH)" with IANA code TBD. The MNH provides two
+      things: it allows carrying the Nexthop and related forwarding
+      information in one BGP attribute. The MNH also enables carrying an
+      ordered set of multiple Nexthops in the same attribute, with forwarding
+      information scoped on a per Nexthop basis.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <p id="section-1-3"></p>
 </section>
 <section id="section-2">
@@ -1615,8 +1629,7 @@ li > p:last-of-type:only-child {
       nexthop is scattered across various attributes, extended communities or
       the NLRI field. On some other address families like Flowspec, nexthop
       address is carried without using the nexthop attribute, in one or more
-      extended communities of specific type. It may be desirable to carry them
-      scoped in a single attribute.<a href="#section-3-1" class="pilcrow">¶</a></p>
+      extended communities of specific type.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <p id="section-3-2">It may be desirable to carry the forwarding information for a nexthop
       scoped in a single attribute, and uniformly for all address
       families.<a href="#section-3-2" class="pilcrow">¶</a></p>
@@ -1818,8 +1831,7 @@ li > p:last-of-type:only-child {
 <p id="section-4.1.3-1">The MNH attribute is intended to be used in a BGP free core,
           between egress and ingress BGP speakers that understand this
           attribute. These BGP speakers may have an intra-AS or inter-AS BGP
-          session between them. On propagating the route with nexthop altered,
-          a new MNH attribute MAY be added by the advertising speaker.<a href="#section-4.1.3-1" class="pilcrow">¶</a></p>
+          session between them.<a href="#section-4.1.3-1" class="pilcrow">¶</a></p>
 <p id="section-4.1.3-2">To avoid un-intentionally leaking the MNH to another AS, via a
           BGP speaker that does not understand MNH attribute, it is defined as
           "optional non-transitive". But this also means that a RR needs to be
@@ -1854,32 +1866,63 @@ li > p:last-of-type:only-child {
           the originating BGP speaker. The "Advertising PNH field" in the MNH
           is set to the Nexthop field in BGP route being re-advertised.<a href="#section-4.1.3-9" class="pilcrow">¶</a></p>
 </section>
-<div id="err-mnh-attr">
+<div id="mnh-confl-handle">
 <section id="section-4.1.4">
-          <h4 id="name-error-handling">
-<a href="#section-4.1.4" class="section-number selfRef">4.1.4. </a><a href="#name-error-handling" class="section-name selfRef">Error Handling</a>
+          <h4 id="name-interaction-with-forwarding">
+<a href="#section-4.1.4" class="section-number selfRef">4.1.4. </a><a href="#name-interaction-with-forwarding" class="section-name selfRef">Interaction with Forwarding Info in Rest of Update</a>
           </h4>
-<p id="section-4.1.4-1">A TLV or sub-TLV of a certain Type in a MNH attribute can occur
+<p id="section-4.1.4-1">A type of forwarding information may be carried in both the MNH
+          as-well as remaining portions of the Update message. E.g., AIGP,
+          Link Bandwidth Extended Community.<a href="#section-4.1.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.1.4-2">The instance of forwarding information carried outside the MNH is
+          associated with the BGP Nexthop (attribute codes 3, 14). The
+          instance of forwarding information carried inside the MNH attribute
+          is more specific, and overrides the one carried outside the MNH. It
+          is associated with the <span><a href="#ep-tlv" class="internal xref">Endpoint</a> (<a href="#ep-tlv" class="auto internal xref">Section 5.3.1</a>)</span> in
+          <span><a href="#fi-tlv" class="internal xref">Forwarding Info TLV</a> (<a href="#fi-tlv" class="auto internal xref">Section 4.4</a>)</span> that is part of
+          same MNH attribute.<a href="#section-4.1.4-2" class="pilcrow">¶</a></p>
+<p id="section-4.1.4-3">This rule holds good for any type of forwarding information
+          carried in the MNH, unless specified otherwise by that type of
+          forwarding information.<a href="#section-4.1.4-3" class="pilcrow">¶</a></p>
+<p id="section-4.1.4-4">An exception to this rule is the MPLS Label stack information
+          carried in <span>[<a href="#RFC8277" class="cite xref">RFC8277</a>]</span> NLRI field. The Labels carried
+          in the NLRI are imposed as inner labels with the Encapsulation Info
+          specified in <span><a href="#encap-tlv" class="internal xref">Encap Info TLV</a> (<a href="#encap-tlv" class="auto internal xref">Section 5.3.3</a>)</span> used as
+          outer encapsulation.<a href="#section-4.1.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="err-mnh-attr">
+<section id="section-4.1.5">
+          <h4 id="name-error-handling">
+<a href="#section-4.1.5" class="section-number selfRef">4.1.5. </a><a href="#name-error-handling" class="section-name selfRef">Error Handling</a>
+          </h4>
+<p id="section-4.1.5-1">A TLV or sub-TLV of a certain Type in a MNH attribute can occur
           only once, unless specified otherwise by that type value. If
           multiple instances of such TLV or sub-TLV is received, the instances
-          other than the first occurance are ignored.<a href="#section-4.1.4-1" class="pilcrow">¶</a></p>
-<p id="section-4.1.4-2">If processing of a received MNH attribute resulted in an error,
+          other than the first occurance are ignored.<a href="#section-4.1.5-1" class="pilcrow">¶</a></p>
+<p id="section-4.1.5-2">MNH employs a hierarchical error detection mechanism, where an
+          error in lower layer TLVs is percolated upwards to the MNH
+          attribute, based on the M bit. If the M bit in a TLV is 0, any error
+          in the TLV is ignored and continue processing. If the M bit is 1,
+          the TLV is considered invalid, and the error exception percolates up
+          to the upper layer TLV, which takes the decision again based on it's
+          M bit, until the MNH attribute top level. If the M bits all the way
+          to the top were set to 1, then the error makes the MNH invalid.<a href="#section-4.1.5-2" class="pilcrow">¶</a></p>
+<p id="section-4.1.5-3">If processing of a received MNH attribute resulted in an error,
           then the "M bit" is used to decide the action. If the M bit is 0,
           then the MNH attribute is ignored, <span>[<a href="#RFC7606" class="cite xref">RFC7606</a>]</span>
           'Attribute Discard' approach MUST be used, and continue to process
           rest of the update. If M bit is 1, then the BGP Route containing the
-          MNH MUST be considered Unusable.<a href="#section-4.1.4-2" class="pilcrow">¶</a></p>
-<p id="section-4.1.4-3">MNH employs a hierarchical error detection mechanism, where an
-          error in lower layer TLVs is percolated upwards to the MNH
-          attribute, based on the M bit.<a href="#section-4.1.4-3" class="pilcrow">¶</a></p>
-<p id="section-4.1.4-4">Implementations MAY provide policy configuration to set M bit to
+          MNH MUST be considered Unusable.<a href="#section-4.1.5-3" class="pilcrow">¶</a></p>
+<p id="section-4.1.5-4">Implementations MAY provide policy configuration to set M bit to
           0 on a MNH attribute being added, this helps with testing impact of
           the MNH on receiving nodes. Once confident, the MNH attribute can be
           re-advertised with M bit set. This helps in graceful incremental
-          deployment.<a href="#section-4.1.4-4" class="pilcrow">¶</a></p>
-<p id="section-4.1.4-5">The definition of a certain type of TLV or Sub-TLV in the MNH
+          deployment.<a href="#section-4.1.5-4" class="pilcrow">¶</a></p>
+<p id="section-4.1.5-5">The definition of a certain type of TLV or Sub-TLV in the MNH
           should specify in it's procedures, the value of M bit to be used. An
-          implementation MAY provide configuration to set or reset the M bit.<a href="#section-4.1.4-5" class="pilcrow">¶</a></p>
+          implementation MAY provide configuration to set or reset the M
+          bit.<a href="#section-4.1.5-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1929,8 +1972,6 @@ li > p:last-of-type:only-child {
            R: "Reserved".
               MUST be set to zero, SHOULD be ignored by receiver.
 
- This document defines the following MNH TLV types:
-
  - MNH Type Code (1 octet)
       Type of MNH TLV. 0 is Reserved.
 
@@ -1952,18 +1993,20 @@ li > p:last-of-type:only-child {
           <h4 id="name-error-handling-2">
 <a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-error-handling-2" class="section-name selfRef">Error Handling</a>
           </h4>
-<p id="section-4.2.1-1">If invalid Type Code 0 is received, the TLV is ignored
+<p id="section-4.2.1-1">If invalid Type Code 0 is received, the MNH TLV is ignored
           irrespective of "M bit", and continue to process rest of the
           update.<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.2.1-2">If the received Type Code is incompatible for the prefix in BGP
-          NLRI, the TLV is considered invalid.<a href="#section-4.2.1-2" class="pilcrow">¶</a></p>
+          NLRI, the MNH TLV is considered invalid.<a href="#section-4.2.1-2" class="pilcrow">¶</a></p>
 <p id="section-4.2.1-3">If an unrecognized Type Code is received, or processing of a
           recognized MNH TLV type results in an error, the TLV is considered
           invalid.<a href="#section-4.2.1-3" class="pilcrow">¶</a></p>
-<p id="section-4.2.1-4">Invalid TLV is handled based on the "M bit" on the TLV.<a href="#section-4.2.1-4" class="pilcrow">¶</a></p>
-<p id="section-4.2.1-5">If the M bit is 0, then the TLV is ignored and continue to
-          process rest of the update. If M bit is 1, then the MNH attribute is
-          considered invalid, triggering the procedures in <a href="#err-mnh-attr" class="auto internal xref">Section 4.1.4</a>.<a href="#section-4.2.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-4">Invalid MNH TLV is handled based on the "M bit" on the MNH
+          TLV.<a href="#section-4.2.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-5">If the M bit is 0, then the MNH TLV is ignored and continue to
+          process rest of the update. If M bit is 1, then the MNH attribute
+          containing this MNH TLV is considered invalid, triggering the
+          procedures in <a href="#err-mnh-attr" class="auto internal xref">Section 4.1.5</a>.<a href="#section-4.2.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2222,7 +2265,8 @@ li > p:last-of-type:only-child {
         this BGP route. The E bit is set to 1 by the node adding the FA, if
         the AS-path on the route is empty. The E bit value received on a MNH
         MUST be propagated on the MNH added to the re-advertisement. This
-        allows the Ingress node to see the E bit value set by the Egress node.<a href="#section-4.5-7" class="pilcrow">¶</a></p>
+        allows the Ingress node to see the E bit value set by the Egress
+        node.<a href="#section-4.5-7" class="pilcrow">¶</a></p>
 <div id="err-fa-tlv">
 <section id="section-4.5.1">
           <h4 id="name-error-handling-5">
@@ -2610,7 +2654,7 @@ Following types of Forwarding Argument are defined by this document.
     This is a 32 bit identifier, associated with the Nexthop address.
     The Nexthop IP-address specified in "Endpoint Identifier" TLVs
     are resolved over tunnels of this color.
-    Defined in [BGP-CT] [draft-kaliraj-idr-bgp-classful-transport-planes]
+    Defined in [BGP-CT] [draft-ietf-idr-bgp-ct]
 
    - Load balance factor (2 octets)
           Balance Percentage
@@ -2723,7 +2767,7 @@ Following types of Forwarding Argument are defined by this document.
     This is a 32 bit identifier, associated with the Nexthop address.
     The Nexthop specified in Endpoint Identifier TLVs
     are resolved over tunnels of this color.
-  Defined in [BGP-CT] [draft-kaliraj-idr-bgp-classful-transport-planes]
+  Defined in [BGP-CT] [draft-ietf-idr-bgp-ct]
 </pre>
 </div>
 <figcaption><a href="#figure-12" class="selfRef">Figure 12</a>:
@@ -3594,7 +3638,7 @@ Following types of Forwarding Argument are defined by this document.
 <dd class="break"></dd>
 <dt id="BGP-CT">[BGP-CT]</dt>
         <dd>
-<span class="refAuthor">Vairavakkalai, Ed.</span> and <span class="refAuthor">Venkataraman, Ed.</span>, <span class="refTitle">"BGP Classful Transport Planes"</span>, <time datetime="2023-03-17" class="refDate">17 March 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-ct-28">https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-ct-28</a>&gt;</span>. </dd>
+<span class="refAuthor">Vairavakkalai, Ed.</span> and <span class="refAuthor">Venkataraman, Ed.</span>, <span class="refTitle">"BGP Classful Transport Planes"</span>, <time datetime="2024-04-25" class="refDate">25 April 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-ct-33">https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-ct-33</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="FLWSPC-REDIR-IP">[FLWSPC-REDIR-IP]</dt>
         <dd>
@@ -3815,28 +3859,84 @@ Following types of Forwarding Argument are defined by this document.
         order. And the solution will work for non-SRTE networks as-well.<a href="#appendix-A.7-2" class="pilcrow">¶</a></p>
 </section>
 <section id="appendix-A.8">
-        <h3 id="name-avoid-label-advertisement-o">
-<a href="#appendix-A.8" class="section-number selfRef">A.8. </a><a href="#name-avoid-label-advertisement-o" class="section-name selfRef">Avoid Label Advertisement Oscillation Between Multihomed PEs.</a>
+        <h3 id="name-problems-with-multihomed-pe">
+<a href="#appendix-A.8" class="section-number selfRef">A.8. </a><a href="#name-problems-with-multihomed-pe" class="section-name selfRef">Problems with Multihomed PEs Protecting Each Other</a>
         </h3>
-<p id="appendix-A.8-1">In a MPLS network, a router may be multihomed to two PEs. The PEs
-        may re-advertise routes received from the router to the IBGP core with
-        self as nexthop and a "per nexthop" label. The PEs may also protect
-        failure of primary path to the router by using the IBGP path via the
-        other multihomed PE as a backup path.<a href="#appendix-A.8-1" class="pilcrow">¶</a></p>
-<p id="appendix-A.8-2">In this scenario, label allocation oscillation may occur when one
-        PE advertises a new label to the other PE. Reception of a new label
-        results in change of nexthop, as the label is used as back nexthop
-        leg, and per-nexthop label allocation is in use. Thus a new label is
-        allocated and advertised. And when this new label is received by the
-        first PE, it allocates a new label in turn. This process repeats.<a href="#appendix-A.8-2" class="pilcrow">¶</a></p>
-<p id="appendix-A.8-3">This oscillation can be stopped only if the primary path label
-        allocated by a PE does not depend on the primary path label advertised
-        by other PE. A PE needs to be able to advertise multiple labels, one
-        for use as primary path and another to be used as bacakup path by the
-        receiver.<a href="#appendix-A.8-3" class="pilcrow">¶</a></p>
-<p id="appendix-A.8-4">MNH attribute allows to advertise a Backup forwarding path label
-        using <a href="#upstr-bkp" class="auto internal xref">Section 5.1.2</a> in addition to Primary forwarding
-        path label using <a href="#upstr-prim" class="auto internal xref">Section 5.1.1</a><a href="#appendix-A.8-4" class="pilcrow">¶</a></p>
+<span id="name-example-topology-with-multi"></span><div id="Multihomed_PEs_Loop_Oscil">
+<figure id="figure-24">
+          <div class="alignLeft art-text artwork" id="appendix-A.8-1.1">
+<pre>
+                        +-----[PE11]    [RR1]
+                        |       |        |
+                        |       +------+ |
+                     [CE1]             [P1]---[PE2]-----[CE2]
+                        |       +------+
+                        |       |
+                        +-----[PE12]
+
+                203.0.113.11                             203.0.113.22
+                          ----  Traffic direction ----&gt;
+</pre>
+</div>
+<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
+<a href="#name-example-topology-with-multi" class="selfRef">Example Topology with Multihomed PEs Protecting Each Other</a>
+          </figcaption></figure>
+</div>
+<p id="appendix-A.8-2">In a MPLS network, a router CE1 may be multihomed to two PEs PE11
+        and PE12. The PEs may re-advertise routes received from CE1 to the
+        IBGP core with self as nexthop and a MPLS Label. The PEs may also
+        protect failure of primary path to router CE1 by using the IBGP path
+        via the other multihomed PE as a backup path. The advertised label has
+        forwarding state installed with both primary and backup paths<a href="#appendix-A.8-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.8-3">Following problems are possible in this scenario:<a href="#appendix-A.8-3" class="pilcrow">¶</a></p>
+<section id="appendix-A.8.1">
+          <h4 id="name-label-oscillation-between-m">
+<a href="#appendix-A.8.1" class="section-number selfRef">A.8.1. </a><a href="#name-label-oscillation-between-m" class="section-name selfRef">Label oscillation between Multihomed PEs</a>
+          </h4>
+<p id="appendix-A.8.1-1">If "per nexthop" label allocation mechanism is used at the PEs,
+          label allocation oscillation may occur when PE11 advertises a new
+          label to PE12. Reception of a new label results in change of nexthop
+          at PE12, as the received label is used as back nexthop leg, and
+          per-nexthop label allocation is in use. Thus a new label is
+          allocated by PE12 and advertised. And when this new label is
+          received by the PE11, it allocates a new label in turn. This process
+          repeats.<a href="#appendix-A.8.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.8.1-2">This problem can happen for either SAFI 4 or SAFI 128 routes.<a href="#appendix-A.8.1-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.8.1-3">This oscillation can be stopped only if the primary path label
+          allocated by a PE does not depend on the primary path label
+          advertised by other PE. A PE needs to be able to advertise multiple
+          labels, one for use as primary path and another to be used as
+          bacakup path by the receiver.<a href="#appendix-A.8.1-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.8.1-4">MNH attribute allows to advertise a Backup forwarding path label
+          using <a href="#upstr-bkp" class="auto internal xref">Section 5.1.2</a> in addition to Primary forwarding
+          path label using <a href="#upstr-prim" class="auto internal xref">Section 5.1.1</a>. This avoids this label
+          oscillation problem.<a href="#appendix-A.8.1-4" class="pilcrow">¶</a></p>
+</section>
+<section id="appendix-A.8.2">
+          <h4 id="name-forwarding-loop-between-mul">
+<a href="#appendix-A.8.2" class="section-number selfRef">A.8.2. </a><a href="#name-forwarding-loop-between-mul" class="section-name selfRef">Forwarding loop between Multihomed PEs</a>
+          </h4>
+<p id="appendix-A.8.2-1">If "per VRF table" label allocation mechanism is used at the PEs,
+          a temporary forwarding loop may between PE11, PE12 in events like
+          the CE1 router going down, which will cause both PE11-CE1 and
+          PE12-CE1 links go down.<a href="#appendix-A.8.2-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.8.2-2">PE11 will forward traffic coming from PE2 on the backup path
+          towards PE12. That packet will perform IP lookup in the VRF at PE12,
+          which will result in the packet getting forwarded over the backup
+          path towards PE11. This loop will persist until global convergence
+          completes, with the PEs send BGP withdrawals for the routes received
+          from CE1 to each other.<a href="#appendix-A.8.2-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.8.2-3">This problem can happen for SAFI 128 routes.<a href="#appendix-A.8.2-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.8.2-4">This loop can also be avoided if the backup path label advertised
+          by a PE does not include the primary path label advertised by other
+          PE. A PE needs to be able to advertise multiple labels, one for use
+          as primary path and another to be used as bacakup path by the
+          receiver.<a href="#appendix-A.8.2-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.8.2-5">MNH attribute allows to advertise a Backup forwarding path label
+          using <a href="#upstr-bkp" class="auto internal xref">Section 5.1.2</a> in addition to Primary forwarding
+          path label using <a href="#upstr-prim" class="auto internal xref">Section 5.1.1</a>. This avoids this
+          forwarding loop problem also.<a href="#appendix-A.8.2-5" class="pilcrow">¶</a></p>
+</section>
 </section>
 <section id="appendix-A.9">
         <h3 id="name-signaling-intent-over-pe-ce">
@@ -3852,7 +3952,7 @@ Following types of Forwarding Argument are defined by this document.
         These procedures use existing AFIs 1 or 2, and service families (SAFI
         1) on the PE-CE attachment circuit, with a new BGP attribute.<a href="#appendix-A.9-3" class="pilcrow">¶</a></p>
 <span id="name-example-topology-with-pe-ce"></span><div id="Intent_PE_CE">
-<figure id="figure-24">
+<figure id="figure-25">
           <div class="alignLeft art-text artwork" id="appendix-A.9-4.1">
 <pre>
                                     ---Gold-----&gt;
@@ -3862,7 +3962,7 @@ Following types of Forwarding Argument are defined by this document.
                           ----  Traffic direction ----&gt;
 </pre>
 </div>
-<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
+<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
 <a href="#name-example-topology-with-pe-ce" class="selfRef">Example Topology with PE-CE Links</a>
           </figcaption></figure>
 </div>
@@ -3975,7 +4075,7 @@ Following types of Forwarding Argument are defined by this document.
         null label in AFI/SAFI: 1/1 routes in a pure IPv6 core environment, to
         achieve 4PE.<a href="#appendix-A.10-1" class="pilcrow">¶</a></p>
 <span id="name-4pe-network-with-pure-ipv6-"></span><div id="topo-4pe">
-<figure id="figure-25">
+<figure id="figure-26">
           <div class="alignLeft art-text artwork" id="appendix-A.10-2.1">
 <pre>
                                    [RR1]
@@ -3993,11 +4093,11 @@ Following types of Forwarding Argument are defined by this document.
 
 </pre>
 </div>
-<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
+<figcaption><a href="#figure-26" class="selfRef">Figure 26</a>:
 <a href="#name-4pe-network-with-pure-ipv6-" class="selfRef">4PE Network with Pure IPv6 Core</a>
           </figcaption></figure>
 </div>
-<p id="appendix-A.10-3"><a href="#topo-4pe" class="auto internal xref">Figure 25</a> shows a 4PE network with pure IPv6 core,
+<p id="appendix-A.10-3"><a href="#topo-4pe" class="auto internal xref">Figure 26</a> shows a 4PE network with pure IPv6 core,
         PE1 is the egress PE connected to penultimate hop node P1. PE1 to PE2
         have some IPv6 core tunneling protocol like LDPv6. When PE1 has
         advertised Implicit Null label in LDPv6, some implementations of P1
