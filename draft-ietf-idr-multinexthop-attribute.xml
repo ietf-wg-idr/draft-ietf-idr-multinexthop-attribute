@@ -228,7 +228,7 @@
       for labeled and unlabeled families (e.g. Inet Unicast, Inet6 Unicast,
       Flowspec) alike. Such that, mechanisms at the transport layer can work
       uniformly on labeled and unlabled BGP families to realize various
-      usecases.</t>
+      use-cases.</t>
     </section>
 
     <section title="Base Encoding And Protocol Procedures">
@@ -389,7 +389,7 @@
           or unrecognized) appears more than once in an UPDATE message, then
           all the occurrences of the attribute other than the first one SHALL
           be discarded and the UPDATE message will continue to be processed.
-          The anamoly MAY be logged for diagnosis.</t>
+          The anomaly MAY be logged for diagnosis.</t>
         </section>
 
         <section title="Scope of Use, Origination and Propagation">
@@ -469,7 +469,7 @@
           <t>A TLV or sub-TLV of a certain Type in a MNH attribute can occur
           only once, unless specified otherwise by that type value. If
           multiple instances of such TLV or sub-TLV is received, the instances
-          other than the first occurance are ignored.</t>
+          other than the first occurrence are ignored.</t>
 
           <t>MNH employs a hierarchical error detection mechanism, where an
           error in lower layer TLVs is percolated upwards to the MNH
@@ -541,7 +541,7 @@
       Type of MNH TLV. 0 is Reserved.
 
  - Length
-    Length of Value portion in octects.
+    Length of Value portion in octets.
 
  - Value
     Value portion contains the NFI TLV.
@@ -656,7 +656,7 @@
         the FwdAction.</t>
 
         <t>Each FwdAction should note the Arguments needed to complete the
-        action. Any extranous arguments should be ignored. If the minimum set
+        action. Any extraneous arguments should be ignored. If the minimum set
         of arguments required to complete an action is not received, the
         Forwarding Instruction TLV should be ignored. Appropriate logging and
         diagnostic info MAY be provided by an implementation to help
@@ -882,7 +882,7 @@
 
 
  - Length
-    Length of Value portion in octects.
+    Length of Value portion in octets.
 
  - Value
     Value portion contains the NFI TLV.
@@ -994,7 +994,7 @@
         the FwdAction.</t>
 
         <t>Each FwdAction should note the Arguments needed to complete the
-        action. Any extranous arguments should be ignored. If the minimum set
+        action. Any extraneous arguments should be ignored. If the minimum set
         of arguments required to complete an action is not received, the
         Forwarding Instruction TLV should be ignored. Appropriate logging and
         diagnostic info MAY be provided by an implementation to help
@@ -1624,7 +1624,7 @@ Following types of Forwarding Argument are defined by this document.
   ----------------  ------------------            ---------------------
      0               None
      1               Endpoint Bandwidth               8
-     2               Accumuated Metric                Variable
+     2               Accumulated Metric               Variable
 
            </artwork>
           </figure>
@@ -1992,7 +1992,7 @@ Following types of Forwarding Argument are defined by this document.
     <section anchor="Security" title="Security Considerations">
       <t>The MNH attribute is defined as optional non-transitive BGP
       attribute, such that it does not accidentally get propagated or leaked
-      via BGP speakers that dont support this feature, especially does not
+      via BGP speakers that don't support this feature, especially does not
       unintentionally leak across EBGP boundaries.</t>
 
       <t>MNH may be used to advertise nexthop with MPLS label in various BGP
@@ -2058,7 +2058,7 @@ Following types of Forwarding Argument are defined by this document.
       discussions and input to the draft.</t>
 
       <t>Thanks to Blaine Williams and Satya Mohanty for the discussions on
-      some usecases.</t>
+      some use-cases.</t>
     </section>
   </middle>
 
@@ -2147,8 +2147,8 @@ Following types of Forwarding Argument are defined by this document.
       </reference>
     </references>
 
-    <section anchor="AppendixA" title="Example of Usecases">
-      <t>This section describes various example usecases of the MNH
+    <section anchor="AppendixA" title="Example of Use-cases">
+      <t>This section describes various example use-cases of the MNH
       attribute.</t>
 
       <section numbered="true" title="Signaling WECMP to Ingress Node">
@@ -2198,7 +2198,7 @@ Following types of Forwarding Argument are defined by this document.
         scale.</t>
       </section>
 
-      <section title="Signaling Optimal Forwarding Exitpoints to Ingress Node">
+      <section title="Signaling Optimal Forwarding Exit-points to Ingress Node">
         <t>In a BGP free core, one can dynamically signal to the ingress-node,
         how traffic should be load-balanced towards a set of exit nodes, in
         one BGP-route containing this attribute.</t>
@@ -2258,7 +2258,7 @@ Following types of Forwarding Argument are defined by this document.
         <xref target="encap-tlv"/> along with the <xref target="ep-tlv"/></t>
 
         <t>This allows the network to direct traffic to a specific CE, and
-        better loadbalance traffic in the provider network, with entropy
+        better load-balance traffic in the provider network, with entropy
         provided by the per CE VPN labels, without increasing RIB scale.</t>
       </section>
 
@@ -2586,7 +2586,7 @@ Following types of Forwarding Argument are defined by this document.
         <t>An egress PE may not need to advertise IPv4 Explicit Null label for
         the IPv4 service route, if it does UHP label in LDPv6. This model
         using MNH provides a homogenous service layer (AFI/SAFI: 1/1) that
-        accomodates differences in requirement of different PE and P routers.
+        accommodates differences in requirement of different PE and P routers.
         Only the PEs which are connected to P nodes that cannot handle the PHP
         situation need to advertise Label using MNH. The service layer is kept
         consistent in the network, and can seamlessly extend to multiple
