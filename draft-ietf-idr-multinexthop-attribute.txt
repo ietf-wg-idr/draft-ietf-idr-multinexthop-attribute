@@ -5,15 +5,15 @@
 Network Working Group                              K. Vairavakkalai, Ed.
 Internet-Draft                                              M. Jeyananth
 Intended status: Standards Track                  Juniper Networks, Inc.
-Expires: 22 March 2025                                        M. Nanduri
+Expires: 25 March 2025                                        M. Nanduri
                                                                Microsoft
                                                                  Lingala
                                                                     AT&T
-                                                       18 September 2024
+                                                       21 September 2024
 
 
                        BGP MultiNexthop Attribute
-                draft-ietf-idr-multinexthop-attribute-02
+                draft-ietf-idr-multinexthop-attribute-03
 
 Abstract
 
@@ -53,7 +53,7 @@ Status of This Memo
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                 [Page 1]
+Vairavakkalai, et al.     Expires 25 March 2025                 [Page 1]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -63,7 +63,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 March 2025.
+   This Internet-Draft will expire on 25 March 2025.
 
 Copyright Notice
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                 [Page 2]
+Vairavakkalai, et al.     Expires 25 March 2025                 [Page 2]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -165,7 +165,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                 [Page 3]
+Vairavakkalai, et al.     Expires 25 March 2025                 [Page 3]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -221,7 +221,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                 [Page 4]
+Vairavakkalai, et al.     Expires 25 March 2025                 [Page 4]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -277,7 +277,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                 [Page 5]
+Vairavakkalai, et al.     Expires 25 March 2025                 [Page 5]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -312,7 +312,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
                         ..
                        [Forwarding Instruction n]
                    }
-                   BackupPath {
+                   RepairPath {
                        [Forwarding Instruction 1],
                         ..
                        [Forwarding Instruction n]
@@ -333,7 +333,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                 [Page 6]
+Vairavakkalai, et al.     Expires 25 March 2025                 [Page 6]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -389,7 +389,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                 [Page 7]
+Vairavakkalai, et al.     Expires 25 March 2025                 [Page 7]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -445,7 +445,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                 [Page 8]
+Vairavakkalai, et al.     Expires 25 March 2025                 [Page 8]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -501,7 +501,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                 [Page 9]
+Vairavakkalai, et al.     Expires 25 March 2025                 [Page 9]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -557,7 +557,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 10]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 10]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -613,7 +613,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 11]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 11]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -669,7 +669,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 12]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 12]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -725,7 +725,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 13]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 13]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -781,7 +781,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 14]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 14]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -837,7 +837,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 15]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 15]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -893,7 +893,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 16]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 16]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -949,7 +949,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 17]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 17]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -966,14 +966,14 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
               If this argument is not understood, the FI TLV containing it
               is considered invalid.
 
-           C: "Cummulative".
+           C: "Cumulative".
               Request nodes to accumulate value in re-advertised MNH.
-              By default Forwarding Arguments are not commulative, so C bit is 0
+              By default Forwarding Arguments are not cumulative, so C bit is 0
               unless otherwise specified by the forwarding argument type.
 
            E: "Egress Attached".
               This bit is maintained when C bit is set to 1.
-              E bit is set to 1 if a cummulative argument is being added to a route
+              E bit is set to 1 if a cumulative argument is being added to a route
               with empty AS-path.
 
            R: "Reserved".
@@ -1005,13 +1005,13 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 18]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 18]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
    A FA that need to be accumulated end-to-end may want to know if the
-   cummulative value denotes the path until the Egress node.  The E bit
+   cumulative value denotes the path until the Egress node.  The E bit
    denotes that the FA was originated by the Egress node that originated
    this BGP route.  The E bit is set to 1 by the node adding the FA, if
    the AS-path on the route is empty.  The E bit value received on a MNH
@@ -1061,7 +1061,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 19]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 19]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1117,7 +1117,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 20]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 20]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1149,9 +1149,9 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
    This TLV describes forwarding state to be programmed during traffic
    repair at receiving speaker. i.e. This TLV is used to program a
-   backup path.  This TLV is used with Upstream allocated prefixes or
-   global scoped prefixes.  Value part contains Nexthop Forwarding
-   Information TLV.
+   backup/repair path.  This TLV is used with Upstream allocated
+   prefixes or global scoped prefixes.  Value part contains Nexthop
+   Forwarding Information TLV.
 
    Signaling a different nexthop for use as backup path is desirable in
    some labeled forwarding scenarios, where two multihomed edge devices
@@ -1173,7 +1173,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 21]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 21]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1229,7 +1229,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 22]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 22]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1285,7 +1285,7 @@ Following Forwarding Actions are defined by this document.
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 23]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 23]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1341,7 +1341,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 24]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 24]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1397,7 +1397,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 25]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 25]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1453,7 +1453,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 26]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 26]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1509,7 +1509,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 27]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 27]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1565,7 +1565,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 28]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 28]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1621,7 +1621,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 29]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 29]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1677,7 +1677,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 30]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 30]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1733,7 +1733,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 31]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 31]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1789,7 +1789,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 32]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 32]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1845,7 +1845,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 33]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 33]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1901,7 +1901,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 34]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 34]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1957,7 +1957,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 35]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 35]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -1976,7 +1976,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
  - F.A. Flags (1 octet)
      As defined in Forwarding Argument TLV.
 
-        C: Cummulative bit is set to 1 by originator of this argument.
+        C: Cumulative bit is set to 1 by originator of this argument.
 
 
 - Len (2 octets)
@@ -2013,7 +2013,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 36]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 36]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2069,7 +2069,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 37]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 37]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2125,7 +2125,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 38]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 38]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2181,7 +2181,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 39]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 39]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2237,7 +2237,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 40]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 40]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2293,7 +2293,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 41]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 41]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2349,7 +2349,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 42]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 42]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2405,7 +2405,7 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 43]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 43]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2420,7 +2420,8 @@ Internet-Draft         BGP MultiNexthop attribute         September 2024
          ----------------  ------------------
            0               Reserved
            1               Bandwidth
-           2-254           Unassigned
+           2               Accumulated Metric to Endpoint
+           3-254           Unassigned
            255             Reserved
 
        Reference: This document.
@@ -2460,8 +2461,7 @@ Contributors
 
 
 
-
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 44]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 44]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2517,7 +2517,7 @@ Normative References
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 45]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 45]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2573,7 +2573,7 @@ Informative References
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 46]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 46]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2629,7 +2629,7 @@ A.1.  Signaling WECMP to Ingress Node
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 47]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 47]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2685,7 +2685,7 @@ A.3.  Load balancing to multiple CEs in a VRF
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 48]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 48]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2721,7 +2721,7 @@ A.5.  Load Balancing over EBGP Parallel Links
       N single-hop EBGP sessions over the N links.  Interface addresses
       are used as next-hops.  N copies of the RIB are exchanged to form
       N-way ECMP paths.  The routes advertised on the N sessions can be
-      attached with Link bandwidth comunity to perform weighted ECMP.
+      attached with Link bandwidth community to perform weighted ECMP.
 
       1 multi-hop EBGP session between loopback addresses, reachable via
       static route over the N links.  Loopback addresses are used as
@@ -2741,7 +2741,7 @@ A.5.  Load Balancing over EBGP Parallel Links
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 49]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 49]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2797,7 +2797,7 @@ A.8.  Problems with Multihomed PEs Protecting Each Other
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 50]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 50]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2816,20 +2816,20 @@ A.8.1.  Label oscillation between Multihomed PEs
    If "per nexthop" label allocation mechanism is used at the PEs, label
    allocation oscillation may occur when PE11 advertises a new label to
    PE12.  Reception of a new label results in change of nexthop at PE12,
-   as the received label is used as back nexthop leg, and per-nexthop
-   label allocation is in use.  Thus a new label is allocated by PE12
-   and advertised.  And when this new label is received by the PE11, it
-   allocates a new label in turn.  This process repeats.
+   as the received label is used as backup/repair nexthop leg, and per-
+   nexthop label allocation is in use.  Thus a new label is allocated by
+   PE12 and advertised.  And when this new label is received by the
+   PE11, it allocates a new label in turn.  This process repeats.
 
    This problem can happen for either SAFI 4 or SAFI 128 routes.
 
    This oscillation can be stopped only if the primary path label
    allocated by a PE does not depend on the primary path label
    advertised by other PE.  A PE needs to be able to advertise multiple
-   labels, one for use as primary path and another to be used as bacakup
+   labels, one for use as primary path and another to be used as repair
    path by the receiver.
 
-   MNH attribute allows to advertise a Backup forwarding path label
+   MNH attribute allows to advertise a Repair forwarding path label
    using Section 5.1.2 in addition to Primary forwarding path label
    using Section 5.1.1.  This avoids this label oscillation problem.
 
@@ -2842,8 +2842,8 @@ A.8.2.  Forwarding loop between Multihomed PEs
 
    PE11 will forward traffic coming from PE2 on the backup path towards
    PE12.  That packet will perform IP lookup in the VRF at PE12, which
-   will result in the packet getting forwarded over the backup path
-   towards PE11.  This loop will persist until global convergence
+   will result in the packet getting forwarded over the backup/repair
+   path towards PE11.  This loop will persist until global convergence
    completes, with the PEs send BGP withdrawals for the routes received
    from CE1 to each other.
 
@@ -2853,17 +2853,18 @@ A.8.2.  Forwarding loop between Multihomed PEs
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 51]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 51]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
 
-   This loop can also be avoided if the backup path label advertised by
-   a PE does not include the primary path label advertised by other PE.
-   A PE needs to be able to advertise multiple labels, one for use as
-   primary path and another to be used as bacakup path by the receiver.
+   This loop can also be avoided if the a PE can advertise a 'Repair
+   path label' that does not include the primary path label advertised
+   by other PE.  A PE needs to be able to advertise multiple labels, one
+   for use as primary path and another to be used as repair path by the
+   receiver.
 
-   MNH attribute allows to advertise a Backup forwarding path label
+   MNH attribute allows to advertise a Repair forwarding path label
    using Section 5.1.2 in addition to Primary forwarding path label
    using Section 5.1.1.  This avoids this forwarding loop problem also.
 
@@ -2908,8 +2909,7 @@ A.9.1.  Using DSCP in MultiNexthop Attribute
 
 
 
-
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 52]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 52]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -2965,7 +2965,7 @@ A.9.2.  MPLS-enabled CE
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 53]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 53]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -3021,7 +3021,7 @@ A.9.2.1.  Secure MPLS Forwarding on Inter-AS Link
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 54]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 54]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -3077,7 +3077,7 @@ A.10.  4PE - Signal MPLS Label for IPv4 Unicast routes
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 55]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 55]
 
 Internet-Draft         BGP MultiNexthop attribute         September 2024
 
@@ -3133,4 +3133,4 @@ Authors' Addresses
 
 
 
-Vairavakkalai, et al.     Expires 22 March 2025                [Page 56]
+Vairavakkalai, et al.     Expires 25 March 2025                [Page 56]

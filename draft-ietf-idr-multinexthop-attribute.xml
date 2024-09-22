@@ -10,7 +10,7 @@
 <?rfc inline="yes"?>
 <?rfc compact="yes"?>
 <?rfc subcompact="no"?>
-<rfc category="std" docName="draft-ietf-idr-multinexthop-attribute-02"
+<rfc category="std" docName="draft-ietf-idr-multinexthop-attribute-03"
      ipr="trust200902">
   <front>
     <title abbrev="BGP MultiNexthop attribute">BGP MultiNexthop
@@ -97,7 +97,7 @@
       </address>
     </author>
 
-    <date day="18" month="September" year="2024"/>
+    <date day="21" month="September" year="2024"/>
 
     <abstract>
       <t>Today, a BGP speaker can advertise one nexthop for a set of NLRIs in
@@ -251,7 +251,7 @@
                      ..
                     [Forwarding Instruction n]
                 }
-                BackupPath {
+                RepairPath {
                     [Forwarding Instruction 1],
                      ..
                     [Forwarding Instruction n]
@@ -775,14 +775,14 @@
               If this argument is not understood, the FI TLV containing it
               is considered invalid.
 
-           C: "Cummulative".
+           C: "Cumulative".
               Request nodes to accumulate value in re-advertised MNH.
-              By default Forwarding Arguments are not commulative, so C bit is 0
+              By default Forwarding Arguments are not cumulative, so C bit is 0
               unless otherwise specified by the forwarding argument type.
 
            E: "Egress Attached".
               This bit is maintained when C bit is set to 1.
-              E bit is set to 1 if a cummulative argument is being added to a route
+              E bit is set to 1 if a cumulative argument is being added to a route
               with empty AS-path.
 
            R: "Reserved".
@@ -813,7 +813,7 @@
         type in any advertised MNH.</t>
 
         <t>A FA that need to be accumulated end-to-end may want to know if the
-        cummulative value denotes the path until the Egress node. The E bit
+        cumulative value denotes the path until the Egress node. The E bit
         denotes that the FA was originated by the Egress node that originated
         this BGP route. The E bit is set to 1 by the node adding the FA, if
         the AS-path on the route is empty. The E bit value received on a MNH
@@ -942,9 +942,9 @@
 
           <t>This TLV describes forwarding state to be programmed during
           traffic repair at receiving speaker. i.e. This TLV is used to
-          program a backup path. This TLV is used with Upstream allocated
-          prefixes or global scoped prefixes. Value part contains Nexthop
-          Forwarding Information TLV.</t>
+          program a backup/repair path. This TLV is used with Upstream
+          allocated prefixes or global scoped prefixes. Value part contains
+          Nexthop Forwarding Information TLV.</t>
 
           <t>Signaling a different nexthop for use as backup path is desirable
           in some labeled forwarding scenarios, where two multihomed edge
@@ -1685,7 +1685,7 @@ Following types of Forwarding Argument are defined by this document.
  - F.A. Flags (1 octet)
      As defined in Forwarding Argument TLV.
 
-        C: Cummulative bit is set to 1 by originator of this argument.
+        C: Cumulative bit is set to 1 by originator of this argument.
 
 
 - Len (2 octets)
@@ -1969,7 +1969,8 @@ Following types of Forwarding Argument are defined by this document.
          ----------------  ------------------
            0               Reserved
            1               Bandwidth
-           2-254           Unassigned
+           2               Accumulated Metric to Endpoint
+           3-254           Unassigned
            255             Reserved
 
        Reference: This document.
@@ -2275,7 +2276,7 @@ Following types of Forwarding Argument are defined by this document.
             <t>N single-hop EBGP sessions over the N links. Interface
             addresses are used as next-hops. N copies of the RIB are exchanged
             to form N-way ECMP paths. The routes advertised on the N sessions
-            can be attached with Link bandwidth comunity to perform weighted
+            can be attached with Link bandwidth community to perform weighted
             ECMP.</t>
 
             <t>1 multi-hop EBGP session between loopback addresses, reachable
@@ -2355,8 +2356,8 @@ Following types of Forwarding Argument are defined by this document.
           <t>If "per nexthop" label allocation mechanism is used at the PEs,
           label allocation oscillation may occur when PE11 advertises a new
           label to PE12. Reception of a new label results in change of nexthop
-          at PE12, as the received label is used as back nexthop leg, and
-          per-nexthop label allocation is in use. Thus a new label is
+          at PE12, as the received label is used as backup/repair nexthop leg,
+          and per-nexthop label allocation is in use. Thus a new label is
           allocated by PE12 and advertised. And when this new label is
           received by the PE11, it allocates a new label in turn. This process
           repeats.</t>
@@ -2366,10 +2367,10 @@ Following types of Forwarding Argument are defined by this document.
           <t>This oscillation can be stopped only if the primary path label
           allocated by a PE does not depend on the primary path label
           advertised by other PE. A PE needs to be able to advertise multiple
-          labels, one for use as primary path and another to be used as
-          bacakup path by the receiver.</t>
+          labels, one for use as primary path and another to be used as repair
+          path by the receiver.</t>
 
-          <t>MNH attribute allows to advertise a Backup forwarding path label
+          <t>MNH attribute allows to advertise a Repair forwarding path label
           using <xref target="upstr-bkp"/> in addition to Primary forwarding
           path label using <xref target="upstr-prim"/>. This avoids this label
           oscillation problem.</t>
@@ -2383,20 +2384,20 @@ Following types of Forwarding Argument are defined by this document.
 
           <t>PE11 will forward traffic coming from PE2 on the backup path
           towards PE12. That packet will perform IP lookup in the VRF at PE12,
-          which will result in the packet getting forwarded over the backup
-          path towards PE11. This loop will persist until global convergence
-          completes, with the PEs send BGP withdrawals for the routes received
-          from CE1 to each other.</t>
+          which will result in the packet getting forwarded over the
+          backup/repair path towards PE11. This loop will persist until global
+          convergence completes, with the PEs send BGP withdrawals for the
+          routes received from CE1 to each other.</t>
 
           <t>This problem can happen for SAFI 128 routes.</t>
 
-          <t>This loop can also be avoided if the backup path label advertised
-          by a PE does not include the primary path label advertised by other
-          PE. A PE needs to be able to advertise multiple labels, one for use
-          as primary path and another to be used as bacakup path by the
+          <t>This loop can also be avoided if the a PE can advertise a 'Repair
+          path label' that does not include the primary path label advertised
+          by other PE. A PE needs to be able to advertise multiple labels, one
+          for use as primary path and another to be used as repair path by the
           receiver.</t>
 
-          <t>MNH attribute allows to advertise a Backup forwarding path label
+          <t>MNH attribute allows to advertise a Repair forwarding path label
           using <xref target="upstr-bkp"/> in addition to Primary forwarding
           path label using <xref target="upstr-prim"/>. This avoids this
           forwarding loop problem also.</t>
