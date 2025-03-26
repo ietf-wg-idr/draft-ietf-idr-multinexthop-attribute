@@ -10,7 +10,7 @@
 <?rfc inline="yes"?>
 <?rfc compact="yes"?>
 <?rfc subcompact="no"?>
-<rfc category="std" docName="draft-ietf-idr-multinexthop-attribute-03"
+<rfc category="std" docName="draft-ietf-idr-multinexthop-attribute-04"
      ipr="trust200902">
   <front>
     <title abbrev="BGP MultiNexthop attribute">BGP MultiNexthop
@@ -97,7 +97,7 @@
       </address>
     </author>
 
-    <date day="21" month="September" year="2024"/>
+    <date day="25" month="March" year="2025"/>
 
     <abstract>
       <t>Today, a BGP speaker can advertise one nexthop for a set of NLRIs in
