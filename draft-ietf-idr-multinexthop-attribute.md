@@ -610,7 +610,7 @@ The type of MNH TLV describes how the forwarding information carried in the MNH 
  --------------     -------------
        0           Reserved
        1           Primary forwarding path
-       2           Backup forwarding path
+       2           Repair forwarding path
 
 
  - Length
@@ -1307,7 +1307,7 @@ This is a Registry for Type codes in ({{mnh-tlv}}) "MNH TLV"
          --------------     -------------
            0                Reserved
            1                Primary forwarding path
-           2                Backup forwarding path
+           2                Repair forwarding path
            3-254            Unassigned
            255              Reserved
 
@@ -1676,7 +1676,7 @@ If "per VRF table" label allocation mechanism is used at the PEs, a temporary fo
 
 PE11 will forward traffic coming from PE2 on the backup path towards PE12. That packet will perform IP lookup in the VRF at PE12, which will result in the packet getting forwarded over the backup/repair path towards PE11. This loop will persist until global convergence completes, with the PEs send BGP withdrawals for the routes received from CE1 to each other.
 
-This problem can happen for SAFI 128 routes.
+This problem can happen for SAFI 128 routes or SAFI 1 routes, that perform IP lookup at egress PE..
 
 This loop can also be avoided if the a PE can advertise a 'Repair path label' that does not include the primary path label advertised by other PE. A PE needs to be able to advertise multiple labels, one for use as primary path and another to be used as repair path by the receiver.
 

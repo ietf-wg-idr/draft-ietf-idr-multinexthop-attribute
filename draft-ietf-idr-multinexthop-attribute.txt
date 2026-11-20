@@ -1037,7 +1037,7 @@ Internet-Draft              BGP MNH attribute              November 2026
     --------------     -------------
           0           Reserved
           1           Primary forwarding path
-          2           Backup forwarding path
+          2           Repair forwarding path
 
 
     - Length
@@ -2084,7 +2084,7 @@ Internet-Draft              BGP MNH attribute              November 2026
          --------------     -------------
            0                Reserved
            1                Primary forwarding path
-           2                Backup forwarding path
+           2                Repair forwarding path
            3-254            Unassigned
            255              Reserved
 
@@ -2872,7 +2872,8 @@ A.8.2.  Forwarding loop between Multihomed PEs
    completes, with the PEs send BGP withdrawals for the routes received
    from CE1 to each other.
 
-   This problem can happen for SAFI 128 routes.
+   This problem can happen for SAFI 128 routes or SAFI 1 routes, that
+   perform IP lookup at egress PE..
 
    This loop can also be avoided if the a PE can advertise a 'Repair
    path label' that does not include the primary path label advertised
@@ -2905,7 +2906,6 @@ A.9.  Signaling Intent over PE-CE Attachment Circuit
                              ----  Traffic direction ---->
 
                 Figure 35: Example Topology with PE-CE Links
-
 
 
 

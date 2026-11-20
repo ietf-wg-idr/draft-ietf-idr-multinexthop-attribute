@@ -2089,7 +2089,7 @@ li > p:last-of-type:only-child {
  --------------     -------------
        0           Reserved
        1           Primary forwarding path
-       2           Backup forwarding path
+       2           Repair forwarding path
 
 
  - Length
@@ -2925,7 +2925,7 @@ li > p:last-of-type:only-child {
          --------------     -------------
            0                Reserved
            1                Primary forwarding path
-           2                Backup forwarding path
+           2                Repair forwarding path
            3-254            Unassigned
            255              Reserved
 
@@ -3465,7 +3465,7 @@ li > p:last-of-type:only-child {
           </h4>
 <p id="appendix-A.8.2-1">If "per VRF table" label allocation mechanism is used at the PEs, a temporary forwarding loop may between PE11, PE12 in events like the CE1 router going down, which will cause both PE11-CE1 and PE12-CE1 links go down.<a href="#appendix-A.8.2-1" class="pilcrow">¶</a></p>
 <p id="appendix-A.8.2-2">PE11 will forward traffic coming from PE2 on the backup path towards PE12. That packet will perform IP lookup in the VRF at PE12, which will result in the packet getting forwarded over the backup/repair path towards PE11. This loop will persist until global convergence completes, with the PEs send BGP withdrawals for the routes received from CE1 to each other.<a href="#appendix-A.8.2-2" class="pilcrow">¶</a></p>
-<p id="appendix-A.8.2-3">This problem can happen for SAFI 128 routes.<a href="#appendix-A.8.2-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.8.2-3">This problem can happen for SAFI 128 routes or SAFI 1 routes, that perform IP lookup at egress PE..<a href="#appendix-A.8.2-3" class="pilcrow">¶</a></p>
 <p id="appendix-A.8.2-4">This loop can also be avoided if the a PE can advertise a 'Repair path label' that does not include the primary path label advertised by other PE. A PE needs to be able to advertise multiple labels, one for use as primary path and another to be used as repair path by the receiver.<a href="#appendix-A.8.2-4" class="pilcrow">¶</a></p>
 <p id="appendix-A.8.2-5">MNH attribute allows to advertise a Repair forwarding path label using <a href="#repair-path-tlv" class="auto internal xref">Section 5.1.2</a> in addition to Primary forwarding path label using <a href="#primary-path-tlv" class="auto internal xref">Section 5.1.1</a>. This avoids this forwarding loop problem also.<a href="#appendix-A.8.2-5" class="pilcrow">¶</a></p>
 </section>
