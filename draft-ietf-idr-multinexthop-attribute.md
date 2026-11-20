@@ -4,10 +4,10 @@ title: "BGP MultiNexthop Attribute"
 abbrev: "BGP MNH attribute"
 category: std
 
-docname: draft-ietf-idr-multinexthop-attribute-05
+docname: draft-ietf-idr-multinexthop-attribute-06
 submissionType: IETF
 number:
-date: 2026-04-19
+date: 2026-11-19
 consensus: true
 v: 3
 area: Routing
@@ -30,18 +30,7 @@ author:
     region: CA
     code: 94089
     country: USA
-    email: kaliraj.vairavakkalai@hpe.com
-
-  -
-    ins: M. Jeyananth
-    name: Minto Jeyananth
-    org: HPE
-    street: 1133 Innovation Way
-    city: Sunnyvale
-    region: CA
-    code: 94089
-    country: USA
-    email: jeyananth-minto.jeganathan@hpe.com
+    email: kaliraj@hpe.com
 
   -
     ins: M. Nanduri
@@ -64,6 +53,41 @@ author:
     code: 75075
     country: USA
     email: ar977m@att.com
+
+contributor:
+
+  -
+    ins: M. Jeyananth
+    name: Minto Jeyananth
+    org: HPE
+    street: 1133 Innovation Way
+    city: Sunnyvale
+    region: CA
+    code: 94089
+    country: USA
+    email: minto@hpe.com
+
+  -
+    ins: D. Reshma
+    name: Reshma Das
+    org: HPE
+    street: 1133 Innovation Way
+    city: Sunnyvale
+    region: CA
+    code: 94089
+    country: USA
+    email: reshma.das@hpe.com
+
+  -
+    ins: V. Natrajan
+    name: Natrajan Venkataraman
+    org: HPE
+    street: 1133 Innovation Way
+    city: Sunnyvale
+    region: CA
+    code: 94089
+    country: USA
+    email: natrajan.venkataraman@hpe.com
 
 normative:
 
@@ -1509,8 +1533,6 @@ Note to RFC Editor: this section may be removed on publication as an RFC.
 The MNH attribute is defined as optional non-transitive BGP attribute, such that it does not accidentally get propagated or leaked via BGP speakers that don't support this feature, especially does not unintentionally leak across EBGP boundaries.
 
 MNH may be used to advertise nexthop with MPLS label in various BGP families. In scenarios where MPLS is enabled on link to a device in an untrusted domain, e.g. a PE-CE link or ASBR-ASBR inter-AS link, security can be provided against MPLS label spoofing by using MPLS context tables as described in {{mpls-enabled-ce}}. Such that only MPLS traffic with labels advertised to the BGP speaker are allowed to forward. However, the PE may not be able to perform any checks based on inner payload in the MPLS packet since it performs label swap forwarding. Such 'inner payload' based checks may be offloaded to a downstream node that forwards and processes inner payload, e.g., an IP router having full FIB. These security aspects should be considered when using MPLS enabled CE devices.
-
-# Contributors
 
 # Acknowledgements
 

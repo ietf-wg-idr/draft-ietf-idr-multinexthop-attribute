@@ -3,17 +3,16 @@
 
 
 IDR Working Group                                       K. Vairavakkalai
-Internet-Draft                                              M. Jeyananth
-Intended status: Standards Track                                     HPE
-Expires: 21 October 2026                                      M. Nanduri
-                                                               Microsoft
+Internet-Draft                                                       HPE
+Intended status: Standards Track                              M. Nanduri
+Expires: 23 May 2027                                           Microsoft
                                                                 A. Reddy
                                                                     AT&T
-                                                           19 April 2026
+                                                        19 November 2026
 
 
                        BGP MultiNexthop Attribute
-                draft-ietf-idr-multinexthop-attribute-05
+                draft-ietf-idr-multinexthop-attribute-06
 
 Abstract
 
@@ -46,16 +45,17 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 October 2026.
+   This Internet-Draft will expire on 23 May 2027.
 
 
 
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026                [Page 1]
+
+Vairavakkalai, et al.      Expires 23 May 2027                  [Page 1]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
 Copyright Notice
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026                [Page 2]
+Vairavakkalai, et al.      Expires 23 May 2027                  [Page 2]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  37
@@ -125,11 +125,10 @@ Internet-Draft              BGP MNH attribute                 April 2026
        7.2.6.  Encapsulation Types . . . . . . . . . . . . . . . . .  42
        7.2.7.  Endpoint Attribute Types  . . . . . . . . . . . . . .  43
    8.  Security Considerations . . . . . . . . . . . . . . . . . . .  44
-   9.  Contributors  . . . . . . . . . . . . . . . . . . . . . . . .  44
-   10. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  45
-   11. References  . . . . . . . . . . . . . . . . . . . . . . . . .  45
-     11.1.  Normative References . . . . . . . . . . . . . . . . . .  45
-     11.2.  Informative References . . . . . . . . . . . . . . . . .  45
+   9.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  45
+   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  45
+     10.1.  Normative References . . . . . . . . . . . . . . . . . .  45
+     10.2.  Informative References . . . . . . . . . . . . . . . . .  45
    Appendix A.  Use Cases  . . . . . . . . . . . . . . . . . . . . .  46
      A.1.  Signaling WECMP to Ingress Node . . . . . . . . . . . . .  46
      A.2.  Signaling Optimal Forwarding Exit-points to Ingress
@@ -147,7 +146,8 @@ Internet-Draft              BGP MNH attribute                 April 2026
        A.9.1.  Using DSCP in MultiNexthop Attribute  . . . . . . . .  53
        A.9.2.  MPLS-enabled CE . . . . . . . . . . . . . . . . . . .  53
      A.10. 4PE - Signal MPLS Label for IPv4 Unicast routes . . . . .  55
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  56
+   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  56
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  57
 
 1.  Introduction
 
@@ -165,9 +165,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026                [Page 3]
+Vairavakkalai, et al.      Expires 23 May 2027                  [Page 3]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    This document defines a new optional non-transitive BGP attribute
@@ -221,9 +221,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026                [Page 4]
+Vairavakkalai, et al.      Expires 23 May 2027                  [Page 4]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    MNH TLV: Top level TLV contained in a MULTI_NEXT_HOP.
@@ -277,9 +277,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026                [Page 5]
+Vairavakkalai, et al.      Expires 23 May 2027                  [Page 5]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
 4.  Base Encoding And Protocol Procedures
@@ -333,9 +333,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026                [Page 6]
+Vairavakkalai, et al.      Expires 23 May 2027                  [Page 6]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
     0                   1                   2                   3
@@ -389,9 +389,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026                [Page 7]
+Vairavakkalai, et al.      Expires 23 May 2027                  [Page 7]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
       contents of this MNH attribute.
@@ -445,9 +445,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026                [Page 8]
+Vairavakkalai, et al.      Expires 23 May 2027                  [Page 8]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    If the MNH attribute is received on a BGP session where MNH support
@@ -501,9 +501,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026                [Page 9]
+Vairavakkalai, et al.      Expires 23 May 2027                  [Page 9]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    An exception to this rule is the MPLS Label stack information carried
@@ -557,9 +557,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 10]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 10]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
 4.2.  MNH TLV
@@ -613,9 +613,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 11]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 11]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    The MNH Type code indicates how the information carried in the TLV is
@@ -669,9 +669,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 12]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 12]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
        0                   1                   2                   3
@@ -725,9 +725,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 13]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 13]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    An Invalid NFI TLV is handled based on value of M bit on it.  If the
@@ -781,9 +781,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 14]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 14]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
        0                   1                   2                   3
@@ -837,9 +837,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 15]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 15]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    Definition of a Forwarding Action should specify the set of
@@ -893,9 +893,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 16]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 16]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
  0                   1                   2                   3
@@ -949,9 +949,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 17]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 17]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    advertised MNH also.  The value of the FA in the advertised MNH MAY
@@ -1005,9 +1005,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 18]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 18]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
 4.7.  Path Selection Considerations
@@ -1061,9 +1061,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 19]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 19]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    If an invalid Type Code 0 is received, the TLV is ignored, and
@@ -1117,9 +1117,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 20]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 20]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    The label advertised by a PE1 for primary path advertisement is
@@ -1173,9 +1173,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 21]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 21]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
  FwdAction         Meaning
@@ -1229,9 +1229,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 22]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 22]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    If an incompatible FwdAction is received for a prefix-type, or an
@@ -1285,9 +1285,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 23]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 23]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
     0                   1                   2                   3
@@ -1341,9 +1341,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 24]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 24]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
  0                   1                   2                   3
@@ -1397,9 +1397,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 25]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 25]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
 5.3.2.1.  Proximity Check
@@ -1453,9 +1453,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 26]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 26]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    When S bit is set, receiver considers the nexthop valid only if it is
@@ -1509,9 +1509,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 27]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 27]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
     0                   1                   2                   3
@@ -1565,9 +1565,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 28]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 28]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    0                   1                   2                   3
@@ -1621,9 +1621,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 29]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 29]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
     0                   1                   2                   3
@@ -1677,9 +1677,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 30]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 30]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
  0                   1                   2                   3
@@ -1733,9 +1733,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 31]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 31]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
  0                   1                   2                   3
@@ -1789,9 +1789,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 32]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 32]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
     0                   1                   2                   3
@@ -1845,9 +1845,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 33]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 33]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
     0                   1                   2                   3
@@ -1901,9 +1901,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 34]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 34]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
   0                   1                   2                   3
@@ -1957,9 +1957,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 35]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 35]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
 5.3.4.2.  Accumulated Metric to Endpoint
@@ -2013,9 +2013,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 36]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 36]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    To keep the scaling limits under check, a BGP speaker MAY keep
@@ -2069,9 +2069,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 37]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 37]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    Under "Border Gateway Protocol (BGP) Parameters",
@@ -2125,9 +2125,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 38]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 38]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
     Under "Border Gateway Protocol (BGP) Parameters",
@@ -2181,9 +2181,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 39]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 39]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
     Under "Border Gateway Protocol (BGP) Parameters",
@@ -2237,9 +2237,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 40]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 40]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
     Under "Border Gateway Protocol (BGP) Parameters",
@@ -2293,9 +2293,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 41]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 41]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
     Under "Border Gateway Protocol (BGP) Parameters",
@@ -2349,9 +2349,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 42]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 42]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
       Under "Border Gateway Protocol (BGP) Parameters",
@@ -2405,9 +2405,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 43]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 43]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
     Under "Border Gateway Protocol (BGP) Parameters",
@@ -2456,17 +2456,17 @@ Internet-Draft              BGP MNH attribute                 April 2026
    IP router having full FIB.  These security aspects should be
    considered when using MPLS enabled CE devices.
 
-9.  Contributors
 
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 44]
+
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 44]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
-10.  Acknowledgements
+9.  Acknowledgements
 
    Thanks to Jeff Haas, Robert Raszuk, Ron Bonica for the review,
    discussions and input to the draft.
@@ -2474,9 +2474,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
    Thanks to Blaine Williams and Satya Mohanty for the discussions on
    some use-cases.
 
-11.  References
+10.  References
 
-11.1.  Normative References
+10.1.  Normative References
 
    [RFC7606]  Chen, E., Ed., Scudder, J., Ed., Mohapatra, P., and K.
               Patel, "Revised Error Handling for BGP UPDATE Messages",
@@ -2502,7 +2502,7 @@ Internet-Draft              BGP MNH attribute                 April 2026
               DOI 10.17487/RFC7911, July 2016,
               <https://www.rfc-editor.org/rfc/rfc7911>.
 
-11.2.  Informative References
+10.2.  Informative References
 
    [RFC2474]  Nichols, K., Blake, S., Baker, F., and D. Black,
               "Definition of the Differentiated Services Field (DS
@@ -2517,9 +2517,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 45]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 45]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    [RFC9256]  Filsfils, C., Talaulikar, K., Ed., Voyer, D., Bogdanov,
@@ -2538,9 +2538,9 @@ Internet-Draft              BGP MNH attribute                 April 2026
    [I-D.draft-ietf-idr-flowspec-redirect-ip]
               Haas, J., Henderickx, W., and A. Simpson, "BGP Flow-Spec
               Redirect-to-IP Action", Work in Progress, Internet-Draft,
-              draft-ietf-idr-flowspec-redirect-ip-06, 2 March 2026,
+              draft-ietf-idr-flowspec-redirect-ip-16, 21 May 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-idr-
-              flowspec-redirect-ip-06>.
+              flowspec-redirect-ip-16>.
 
    [I-D.draft-ietf-idr-add-paths-guidelines-08]
               Uttaro, J., Francois, P., Patel, K., Haas, J., Simpson,
@@ -2573,9 +2573,9 @@ A.1.  Signaling WECMP to Ingress Node
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 46]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 46]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
                                       [RR1]
@@ -2629,9 +2629,9 @@ A.2.  Signaling Optimal Forwarding Exit-points to Ingress Node
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 47]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 47]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    Example, for prefix1, use PE1 as primary-nexthop and use PE2 as a
@@ -2685,9 +2685,9 @@ A.3.  Load balancing to multiple CEs in a VRF
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 48]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 48]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    This allows the network to direct traffic to a specific CE, and
@@ -2741,9 +2741,9 @@ A.5.  Load Balancing over EBGP Parallel Links
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 49]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 49]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    *  1 multi-hop EBGP session between loopback addresses, reachable via
@@ -2797,9 +2797,9 @@ A.8.  Problems with Multihomed PEs Protecting Each Other
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 50]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 50]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
                            +-----[PE11]    [RR1]
@@ -2853,9 +2853,9 @@ A.8.1.  Label oscillation between Multihomed PEs
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 51]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 51]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
 A.8.2.  Forwarding loop between Multihomed PEs
@@ -2909,9 +2909,9 @@ A.9.  Signaling Intent over PE-CE Attachment Circuit
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 52]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 52]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
 A.9.1.  Using DSCP in MultiNexthop Attribute
@@ -2965,9 +2965,9 @@ A.9.2.  MPLS-enabled CE
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 53]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 53]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    Label PVL1 may identifies a service function at any node in the
@@ -3021,9 +3021,9 @@ A.9.2.1.  Secure MPLS Forwarding on Inter-AS Link
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 54]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 54]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    Furthermore, the routes for labels PVL1, PVL2 installed in MPLS
@@ -3077,9 +3077,9 @@ A.10.  4PE - Signal MPLS Label for IPv4 Unicast routes
 
 
 
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 55]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 55]
 
-Internet-Draft              BGP MNH attribute                 April 2026
+Internet-Draft              BGP MNH attribute              November 2026
 
 
    MNH can be used by PE1 on a AFI/SAFI: 1/1 route, to advertise the
@@ -3105,6 +3105,39 @@ Internet-Draft              BGP MNH attribute                 April 2026
    Not mixing service and transport routes improves security and
    manageability aspects of the network.
 
+Contributors
+
+   Minto Jeyananth
+   HPE
+   1133 Innovation Way
+   Sunnyvale, CA 94089
+   United States of America
+   Email: minto@hpe.com
+
+
+   Reshma Das
+   HPE
+   1133 Innovation Way
+   Sunnyvale, CA 94089
+   United States of America
+   Email: reshma.das@hpe.com
+
+
+   Natrajan Venkataraman
+   HPE
+   1133 Innovation Way
+   Sunnyvale, CA 94089
+   United States of America
+   Email: natrajan.venkataraman@hpe.com
+
+
+
+
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 56]
+
+Internet-Draft              BGP MNH attribute              November 2026
+
+
 Authors' Addresses
 
    Kaliraj Vairavakkalai
@@ -3112,15 +3145,7 @@ Authors' Addresses
    1133 Innovation Way
    Sunnyvale, CA 94089
    United States of America
-   Email: kaliraj.vairavakkalai@hpe.com
-
-
-   Minto Jeyananth
-   HPE
-   1133 Innovation Way
-   Sunnyvale, CA 94089
-   United States of America
-   Email: jeyananth-minto.jeganathan@hpe.com
+   Email: kaliraj@hpe.com
 
 
    Mohan Nanduri
@@ -3129,13 +3154,6 @@ Authors' Addresses
    Redmond, WA 98052
    United States of America
    Email: mohannanduri@microsoft.com
-
-
-
-
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 56]
-
-Internet-Draft              BGP MNH attribute                 April 2026
 
 
    Avinash Reddy
@@ -3171,22 +3189,4 @@ Internet-Draft              BGP MNH attribute                 April 2026
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Vairavakkalai, et al.    Expires 21 October 2026               [Page 57]
+Vairavakkalai, et al.      Expires 23 May 2027                 [Page 57]
