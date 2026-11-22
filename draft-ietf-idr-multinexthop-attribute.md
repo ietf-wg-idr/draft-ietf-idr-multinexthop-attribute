@@ -4,10 +4,10 @@ title: "BGP MultiNexthop Attribute"
 abbrev: "BGP MNH attribute"
 category: std
 
-docname: draft-ietf-idr-multinexthop-attribute-06
+docname: draft-ietf-idr-multinexthop-attribute-07
 submissionType: IETF
 number:
-date: 2026-11-19
+date: 2026-11-22
 consensus: true
 v: 3
 area: Routing
@@ -317,8 +317,6 @@ A type of forwarding information may be carried in both the MNH as-well as remai
 The instance of forwarding information carried outside the MNH is associated with the BGP Nexthop (attribute codes 3, 14). The instance of forwarding information carried inside the MNH attribute is more specific, and overrides the one carried outside the MNH. It is associated with the Endpoint ({{ep-tlv}}) in Forwarding Instruction TLV ({{fwd-instr-tlv}}) that is part of same MNH attribute.
 
 This rule holds good for any type of forwarding information carried in the MNH, unless specified otherwise by that type of forwarding information.
-
-An exception to this rule is the MPLS Label stack information carried in {{RFC8277}} NLRI field. The Labels carried in the NLRI are imposed as inner labels with the Encapsulation Info specified in Encap Info TLV ({{encap-tlv}}) used as outer encapsulation.
 
 ### MNH attribute Error Handling  {#err-mnh-attr}
 
@@ -814,7 +812,6 @@ This is a Forwarding Argument ({{farg-tlv}}) with F.A. Type Code = 2. It defines
      0           Reserved
      1           Proximity check                 2
      2           Transport Class ID (Color)      4
-     3           Load balance factor             2
 
   - Constrain Len (1 octet)
 
@@ -830,9 +827,6 @@ This is a Forwarding Argument ({{farg-tlv}}) with F.A. Type Code = 2. It defines
     The Nexthop IP-address specified in "Endpoint Identifier" TLVs
     are resolved over tunnels of this color.
     Defined in {{RFC9832}}
-
-   - Load balance factor (2 octets)
-          Balance Percentage
 
 ~~~
 {: #path-constrain title="Path Constraints" }
@@ -1444,8 +1438,7 @@ This is a Registry for Type codes in {{constrain-tlv}} "Path Constrain" Forwardi
            0             Reserved
            1             Proximity check
            2             Transport Class ID (Color)
-           3             Load balance factor
-           4-254         Unassigned
+           3-254         Unassigned
            255           Reserved
 
       Reference: This document.
